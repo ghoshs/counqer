@@ -1,7 +1,11 @@
 from flask import Flask, render_template, url_for, json, request, jsonify, send_from_directory
 from flask_cors import CORS, cross_origin
 from get_count_data import related_predicate
-from text_search import search_wikipedia
+from free_text_search import text_tags
+import spacy
+from spacy.tokens import DocBin
+import json
+
 try: 
 	import urllib2 as myurllib
 except ImportError:
@@ -13,9 +17,11 @@ app.config['CORS_HEADERS'] = 'Content-Type'
 
 @app.route('/ftresults', methods=['GET', 'POST'])
 @cross_origin()
-def free_text_search():
-	print("Query:: ", request.args.get('query'))
-	response = search_wikipedia(request.args.get('query'))
+def free_text_query():
+	query = json.loads(request.data.decode())['text']
+	print("Query:: ", query)
+	response = text_tags(query) if len(query) > 0 else {}
+	print(response)
 	return jsonify(response)
 
 @app.route('/getalignments', methods=['GET','POST'])

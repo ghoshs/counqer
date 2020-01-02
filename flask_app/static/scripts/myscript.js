@@ -26,6 +26,11 @@ var flaskurl = 'http://localhost:5000/';
 // var localpath ='https://counqer.mpi-inf.mpg.de/static/';
 // var flaskurl = 'https://counqer.mpi-inf.mpg.de/'; 
 
+// displacy display object
+// var displacy = new displaCy(flaskurl+'ftresults', {
+//   container: '#displacy',
+// })
+
 // function to process the jsonp (json padding) function returned by the json files and
 // populate the predicate options
 function jsonCallback (result){
@@ -210,7 +215,13 @@ function join_entities(entityarray){
     }
     // result = entities.slice(0,overflow_idx+1).join('; ')
     // result = result.slice(0,overflow_limit+1);
-    result['trunc'] = result['trunc'] + ' ... (' + (entities.length).toString() + ' in total)';
+    if (entities.length == 1000){
+      result['trunc'] = result['trunc'] + ' ... (>' + (entities.length).toString() + ' in total)';  
+    }
+    else {
+      result['trunc'] = result['trunc'] + ' ... (' + (entities.length).toString() + ' in total)';
+    }
+    
   }
   // else {
   for (var i=0; i<=entities.length-1; i++){
@@ -895,80 +906,6 @@ $(document).ready(function () {
     };
     samplequeries(payload);
   });
-  // $('#dbpm_ideal_2').on('click', function () {
-  //   var payload = {
-  //     subject: "Lufthansa",
-  //     subjectID: "Lufthansa",
-  //     predicate: "dbo: hub airport",
-  //     object: "",
-  //     kbname: 'dbpedia_mapped'
-  //   };
-  //   samplequeries(payload);
-  // });
-  // $('#example1').on('click', function () {
-  //   var payload = {
-  //     waitmsg: "<div class='alert alert-info alert-dismissible' style='margin-bottom: 0px'><strong>!!</strong>Hold on to your seats, we are fetching the results!</div>",
-  //     subject: "Grey's Anatomy",
-  //     subjectID: "Q438406",
-  //     predicate: "P170: creator",
-  //     object: "",
-  //     kbname: 'wikidata',
-  //     endmsg: "<div class='alert alert-info alert-dismissible' style='margin-bottom: 0px'><strong>!!</strong> Hope the results satisfy your curiosity!</div>"
-  //   };
-  //   samplequeries(payload);
-  // });
-
-  // $('#example2').on('click', function () {
-  //   var payload = {
-  //     waitmsg: "<div class='alert alert-info alert-dismissible' style='margin-bottom: 0px'><strong>!!</strong>Hold on to your seats, we are fetching the results!</div>",
-  //     subject: "McGill University",
-  //     subjectID: "https://en.wikipedia.org/wiki/McGill_University",
-  //     predicate: "dbo: faculty size",
-  //     object: "",
-  //     kbname: "dbpedia",
-  //     endmsg: "<div class='alert alert-info alert-dismissible' style='margin-bottom: 0px'><strong>!!</strong> Hope the results satisfy your curiosity!</div>"
-  //   };
-  //   samplequeries(payload);
-  // });
-
-  // $('#example3').on('click', function () {
-  //   var payload = {
-  //     waitmsg: "<div class='alert alert-info alert-dismissible' style='margin-bottom: 0px'><strong>!!</strong>Hold on to your seats, we are fetching the results!</div>",
-  //     subject: "World War I",
-  //     subjectID: "Q361",
-  //     predicate: "P1120: number of deaths",
-  //     object: "",
-  //     kbname: "wikidata",
-  //     endmsg: "<div class='alert alert-info alert-dismissible' style='margin-bottom: 0px'><strong>!!</strong> Hope the results satisfy your curiosity!</div>"
-  //   };
-  //   samplequeries(payload);
-  // });
-
-  // $('#example4').on('click', function () {
-  //   var payload = {
-  //     waitmsg: "<div class='alert alert-info alert-dismissible' style='margin-bottom: 0px'><strong>!!</strong>Hold on to your seats, we are fetching the results!</div>",
-  //     subject: "Frankfurt Airport",
-  //     subjectID: "http://wikipedia.org/wiki/Frankfurt_Airport",
-  //     predicate: "dbo: hub airport",
-  //     object: "",
-  //     kbname: "dbpedia",
-  //     endmsg: "<div class='alert alert-info alert-dismissible' style='margin-bottom: 0px'><strong>!!</strong> Hope the results satisfy your curiosity!</div>"
-  //   };
-  //   samplequeries(payload);
-  // });
-  
-  // $('#example5').on('click', function () {
-  //   var payload = {
-  //     waitmsg: "<div class='alert alert-info alert-dismissible' style='margin-bottom: 0px'><strong>!!</strong>Hold on to your seats, we are fetching the results!</div>",
-  //     subject: "Game of Thrones",
-  //     subjectID: "Q23572",
-  //     predicate: "P179: series",
-  //     object: "",
-  //     kbname: "wikidata",
-  //     endmsg: "<div class='alert alert-info alert-dismissible' style='margin-bottom: 0px'><strong>!!</strong> Hope the results satisfy your curiosity!</div>"
-  //   };
-  //   samplequeries(payload);
-  // });
   // ******************************** predicate button click events ******************************//
   $('#p1').on('click', function () {
     console.log('p1 clicked!!: ', $(this).html());
@@ -1100,6 +1037,7 @@ $(document).ready(function () {
   $("#ftsearch").click(function () {
     console.log($("#ftquery").val());
     var query = $("#ftquery").val();
+    // displacy.parse(query);
     $.ajax({
       type: 'GET',
       url : flaskurl + 'ftresults',
@@ -1108,6 +1046,7 @@ $(document).ready(function () {
       success : function(result, status){
         console.log("success!");
         console.log(result);
+        displacy.render(result, {}, query);
       },
       error: function() {
         console.log("no results returned!");

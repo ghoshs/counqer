@@ -197,7 +197,7 @@ def query_wd(subID, predID, objID, df_score):
 	query_pred_list = []
 	inv_query_pred_list = []
 	response = {}
-	responselimit = "10"
+	responselimit = "1000"
 
 	# pred = ':'.join([x.strip() for x in predID.split(':')])
 	pred = predID.split(":")[0]
@@ -461,7 +461,7 @@ def query_dbp(subID, predID, objID, df_score):
 	inv_query_pred_list = []
 	inv = False
 	response = {}
-	responselimit = "10"
+	responselimit = "1000"
 	namespace = ''
 
 	pred = [x[0].upper()+x[1:] for x in predID.split(' ')[2:]]

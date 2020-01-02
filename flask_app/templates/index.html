@@ -12,6 +12,8 @@
 	<!-- JQuery datatables script -->
 	<script src="{{ url_for('static', filename='DataTables/datatables.min.js') }}"></script>
 	<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='DataTables/datatables.min.css') }}"/>
+	<!-- Spacy display script -->
+	<script src="{{ url_for('static', filename='scripts/displacy-ent.js') }}"></script>
 	<!-- Bootstrap files -->
 	<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/bootstrap.min.css') }}">
 	<script src="{{ url_for('static', filename='scripts/bootstrap.min.js') }}"></script>
@@ -222,6 +224,9 @@
 				<!-- </div> -->
 			</div>
 		</div>
+	</div>
+	<div class="row vertical-align no-gutter">
+		<div class="col-sm-11" id="displacy"></div>
 	</div>
 </div>
 
