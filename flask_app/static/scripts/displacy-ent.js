@@ -5,9 +5,9 @@
 'use strict';
 
 class displaCyENT {
-    constructor (api, options) {
-        this.api = api;
-        this.container = document.querySelector(options.container || '#displacy');
+    constructor (options) {
+        // this.api = api;
+        this.container = options.container || document.querySelector('#displacy');
 
         this.defaultText = options.defaultText || 'When Sebastian Thrun started working on self-driving cars at Google in 2007, few people outside of the company took him seriously.';
         this.defaultModel = options.defaultModel || 'en';
@@ -45,11 +45,11 @@ class displaCyENT {
         xhr.send(JSON.stringify({ text, model }));
     }
 
-    render(text, spans, ents) {
+    render(text, spans, type, ent_similarity=[], ents=['person', 'norp', 'fac', 'org', 'gpe', 'loc', 'product', 'event', 'work_of_art', 'law', 'language', 'cardinal']) {
         this.container.innerHTML = '';
         let offset = 0;
 
-        spans.forEach(({ type, start, end }) => {
+        spans.forEach(({ label, start, end }, idx) => {
             const entity = text.slice(start, end);
             const fragments = text.slice(offset, start).split('\n');
 
@@ -58,23 +58,39 @@ class displaCyENT {
                 if(fragments.length > 1 && i != fragments.length - 1) this.container.appendChild(document.createElement('br'));
             });
 
-            if(ents.includes(type.toLowerCase())) {
-                const mark = document.createElement('mark');
-                mark.setAttribute('data-entity', type.toLowerCase());
-                mark.appendChild(document.createTextNode(entity));
-                this.container.appendChild(mark);
-            }
+            if (type === 'all_matches') {
+                if(ents.includes(label.toLowerCase())) {
+                    const mark = document.createElement('mark');
+                    mark.setAttribute('data-entity', label.toLowerCase());
+                    mark.appendChild(document.createTextNode(entity));
+                    this.container.appendChild(mark);
+                }
 
-            else {
-                this.container.appendChild(document.createTextNode(entity));
+                else {
+                    this.container.appendChild(document.createTextNode(entity));
+                }
             }
+            else {
+                if((ents.includes(label.toLowerCase()) && ent_similarity[idx] > 0) || (label.toLowerCase() === 'cardinal')) {
+                    const mark = document.createElement('mark');
+                    mark.setAttribute('data-entity', label.toLowerCase());
+                    mark.setAttribute('title', ent_similarity[idx].toString());
+                    mark.appendChild(document.createTextNode(entity));
+                    this.container.appendChild(mark);
+                }
+
+                else {
+                    this.container.appendChild(document.createTextNode(entity));
+                }
+            }
+            
 
             offset = end;
         });
 
         this.container.appendChild(document.createTextNode(text.slice(offset, text.length)));
 
-        console.log(`%c💥  HTML markup\n%c<div class="entities">${this.container.innerHTML}</div>`, 'font: bold 16px/2 arial, sans-serif', 'font: 13px/1.5 Consolas, "Andale Mono", Menlo, Monaco, Courier, monospace');
+        // console.log(`%c💥  HTML markup\n%c<div class="entities">${this.container.innerHTML}</div>`, 'font: bold 16px/2 arial, sans-serif', 'font: 13px/1.5 Consolas, "Andale Mono", Menlo, Monaco, Courier, monospace');
 
         if(typeof this.onRender === 'function') this.onRender();
     }

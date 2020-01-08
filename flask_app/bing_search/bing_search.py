@@ -1,10 +1,10 @@
 import requests
 
-def call_bing_api(query, subscription_key='2faf6a70e52a46318ec658b2a14c891c'):
+def call_bing_api(query, count=10, subscription_key='2faf6a70e52a46318ec658b2a14c891c'):
 	# global num_api_calls
 	url = "https://api.cognitive.microsoft.com/bingcustomsearch/v7.0/search"
 	headers = {'Ocp-Apim-Subscription-Key': subscription_key}
-	params = {"q": query, "customconfig": "3701208300", "mkt": "en-US", "safesearch": "Moderate", "responseFilter": "-images,-videos"}
+	params = {"q": query, "customconfig": "3701208300", "mkt": "en-US", "safesearch": "Moderate", "responseFilter": "-images,-videos", "count": count}
 	response = requests.get(url, headers=headers, params=params)
 	response.raise_for_status()
 	# num_api_calls += 1

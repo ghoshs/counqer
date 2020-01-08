@@ -6,24 +6,30 @@ from spacy import displacy
 sys.path.append('/home/shrestha/Documents/PhD/counqer_v2/flask_app')
 
 from bing_search.bing_search import call_bing_api
-from named_entity_recognition.named_entity_recognition import get_tags
+import my_entity_matcher.my_entity_matcher as my_ner
 
-def text_tags(query, max_results=2):
+def text_tags(query, max_results=10):
+	result = {}
+	q_nlp = spacy.load("en_core_web_sm")
+	query_tags = q_nlp(query)
+	
 	# takes only single query
-	results = call_bing_api(query)
-	results_tags = get_tags(results)
-	query_tags = get_tags(query, type='query')
-	for idx, doc in enumerate(results_tags):
-		if idx == max_results:
-			break
-		# displacy.serve(doc, style="ent")
+	results = call_bing_api(query, max_results)
+	# print(results)
+	r_nlp = spacy.load("en_core_web_sm")
+	ent_matcher = my_ner.MYSpacyDoc(r_nlp, query_tags)
+	r_nlp.add_pipe(ent_matcher)
+	results_tags = r_nlp.pipe([item['snippet'] for item in results])
 
-		# for token in doc:
-		# 	print(token.text, token.ent_iob_, token.ent_type_, token.pos_)
-	# print([(token.text, token.ent_iob_, token.ent_type_, token.pos_) for token in query_tags])
-	all_tags = [query_tags]
+	result['query_tags'] = query_tags.to_json()
+	result['results_tags'] = []
 	for doc in results_tags:
-		all_tags.append(doc)
-	# html = displacy.render(all_tags, style='ent', minify=True)
-	return {'query_tags': query_tags.to_json(), 'results_tags': [displacy.parse_deps(doc) for doc in results_tags]}
+		ent_match = []
+		for ent in doc.ents:
+			ent_match.append(float(ent._.get("is_ent_match")))
+		doc_json = doc.to_json()
+		doc_has_ent_match = str(doc._.get("has_ent_match"))
+		result['results_tags'].append({'text': doc_json['text'], 'ents': doc_json['ents'], 'has_ent_match': doc_has_ent_match, 'ent_similarity': ent_match})
+
+	return result
 	# return displacy.parse_deps(all_tags[1])

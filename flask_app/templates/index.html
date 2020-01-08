@@ -19,23 +19,27 @@
 	<script src="{{ url_for('static', filename='scripts/bootstrap.min.js') }}"></script>
 	<!-- stylesheet -->
 	<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/mystyles.css') }}">
+	<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/displacy-ent.css') }}">
 </head>
 <body>
 <nav class='container sticky'>
-	<ul id='navbar'>
-		<li><a class="active" href="#">Home</a></li>
+	<a href="#" class='navbar-brand'>
+		<span style="font-size: 120%;"> <strong> CounQER </strong> </span> <span> (Counting Quantifiers and Entity-valued predicates)</span>
+	</a>
+	<!-- <button type="button" data-toggle="collapse" data-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation" class="navbar-toggler"><span class="navbar-toggler-icon"></span></button> -->
+	<ul id='navbar' class=navbar-nav>
+		<li><a class="active" href="#">SPO query</a></li>
 		<li><a href="#ftq">Free text query</a></li>
 		<li><a href="#topalign">Top alignments</a></li>
 	</ul>
 </nav>
-<div class="jumbotron text-center" id="header">
-	<!-- <h2>CounQER: Counting Quantifiers and related Entity-valued Relations</h2> -->
+<!-- <div class="jumbotron text-center" id="header">
 	<h1>CounQER</h1>
 	<h2>Counting Quantifiers and Entity-valued predicates</h2>
-</div>
+</div> -->
 
 <div class="container body" id="home">
-	<h2>Structured query on set predicates</h2>
+	<h2>SPO query on set predicates</h2>
 	<hr>
 	<div class="row">
 		<p>Provide the name of an entity (either a subject or an object) and pick any predicate from the dropdown. CounQER retrieves SPO triples from Knowledge Bases which answer your query. Additionally, it also tries to provide supplementary count related facts with respect to the queried entity.<br>
@@ -45,7 +49,7 @@
 	</div>
 	<!-- <form class="row"> -->
 	<div class="row vertical-align no-gutter">
-		<div class="col-sm-1 refresh">
+		<div class="col-sm-1" id="spoRefresh">
 			<button type="button" class="btn btn-link">
 				<!-- <img src="images/ocat2.png" width="50"> -->
 				<span class="glyphicon glyphicon-refresh" style="font-size: 2.7em"></span>
@@ -189,7 +193,7 @@
 	<h2>Free-form query on set predicates</h2>
 	<hr>
 	<div class="row vertical-align no-gutter">
-		<div class="col-sm-1 refresh">
+		<div class="col-sm-1" id="ftqRefresh">
 			<button type="button" class="btn btn-link">
 				<!-- <img src="images/ocat2.png" width="50"> -->
 				<span class="glyphicon glyphicon-refresh" style="font-size: 2.7em"></span>
@@ -207,11 +211,7 @@
 			</button>
 		</div>
 		<div class="col-sm-3">
-			<div class="btn-grp">
-				<!-- <button type="button" class="btn btn-link">
-					<img src="images/ocat1.png" width="50">
-				</button>
-				<div class="dropdown-content"> -->
+			<!-- <div class="btn-grp">
 					<button type="button" class="btn btn-outline-info" id="ftWD-btn">
 						<img src="{{ url_for('static', filename='images/wikidataLogo.png') }}" width="30" title="Wikidata">
 					</button>
@@ -221,12 +221,17 @@
 					<button type="button" class="btn btn-link" id="ftDBPm-btn">
 						<img src="{{ url_for('static', filename='images/DBpediamapLogo.png') }}" width="30" title="DBP: mapping KB">
 					</button>
-				<!-- </div> -->
-			</div>
+			</div> -->
+			<label class="radio-inline">
+				<input type="radio" name="ftq_ents" id="ftq_all_ents" checked value='All entities'> All entities
+			</label>
+			<label class="radio-inline">
+				<input type="radio" name="ftq_ents" id="ftq_matched_ents" value='Matched entities'> Matched entities
+			</label>
 		</div>
 	</div>
 	<div class="row vertical-align no-gutter">
-		<div class="col-sm-11" id="displacy"></div>
+		<div class="col-sm-12" id="displacy"></div>
 	</div>
 </div>
 
@@ -305,7 +310,7 @@
 			<a href="https://imprint.mpi-klsb.mpg.de/inf/counqer.mpi-inf.mpg.de">Imprint</a> |
 			<a href="https://data-protection.mpi-klsb.mpg.de/inf/counqer.mpi-inf.mpg.de">Data Protection</a> |
 			<a href="mailto:ghoshs@mpi-inf.mpg.de">Contact</a> |
-			<a href="#header">Return to top</a>
+			<a href="#home" id='footerReturn'>Return to top</a>
 		</div>
 	</div>
 </div>

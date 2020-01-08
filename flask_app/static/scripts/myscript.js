@@ -17,6 +17,7 @@ var option='wikidata';
 var predrequest = new XMLHttpRequest();
 
 var ftoption = 'wikidata';
+var ftresult = {};
 // url to the data directory which has the wikidata/wd_predicates.json and dbpedia/dbp_predicates.json files
 // SimpleHTTPServer invoked in localhost on demo directory
 var localpath ='http://localhost:9000/static/';
@@ -25,11 +26,6 @@ var flaskurl = 'http://localhost:5000/';
 /** server edits**/
 // var localpath ='https://counqer.mpi-inf.mpg.de/static/';
 // var flaskurl = 'https://counqer.mpi-inf.mpg.de/'; 
-
-// displacy display object
-// var displacy = new displaCy(flaskurl+'ftresults', {
-//   container: '#displacy',
-// })
 
 // function to process the jsonp (json padding) function returned by the json files and
 // populate the predicate options
@@ -585,7 +581,8 @@ function samplequeries(payload){
 
 // free text form refresh
 function ft_form_refresh() {
-  // 
+  $('#displacy').empty();
+  ftresult = {};
 }
 
 
@@ -601,6 +598,37 @@ function get_table_data(item) {
                  '<td>' + parseFloat(item['score']).toFixed(3) + asterix + '</td>' +
                  '</tr>';
   return htmldata;
+}
+
+// function to display NER results
+
+function render_ner_results(result) {
+  var containerEl = document.getElementById('displacy');
+
+  var query_row = document.createElement("div");
+  query_row.className = 'row vertical-align no-gutter query';
+  query_row.innerHTML = '<div class="col-2"><strong>Query:</strong></div><div class="col-10"></div>';
+  containerEl.appendChild(query_row);
+  // call annotator on query
+  var displacy = new displaCyENT({container: containerEl.querySelector('.query').querySelector('div:last-child')});
+  displacy.render(result.query_tags.text, result.query_tags.ents, 'all_matches');
+
+  // add results heading
+  var result_heading = document.createElement("div");
+  result_heading.className = 'row vertical-align';
+  result_heading.innerHTML = '<div class="col-12"><strong>Results</strong></div>';
+  containerEl.appendChild(result_heading);
+
+  result.results_tags.forEach(function(item, index) {
+    var rownum = index + 1;
+    var result_row = document.createElement("div");
+    result_row.className = 'row vertical-align no-gutter result';
+    result_row.innerHTML = '<div class="col-2">' + rownum.toString() + '.</div><div class="col-10"></div>'
+
+    containerEl.appendChild(result_row);
+    var displacy = new displaCyENT({container: containerEl.querySelector('.result:last-child').querySelector('div:last-child')});
+    displacy.render(item.text, item.ents, 'all_matches', item.ent_similarity);
+  });
 }
 
 // ******************************** on document ready **************************************//
@@ -677,53 +705,6 @@ $(document).ready(function () {
     // }
     return;
   });
-  // $("#subject").on('change', function () {
-  //   subjectID = subjectIDlist[$(this).val().split(':')[0]];
-  //   console.log('on change sub id: ', subjectID);
-  // });
-  // ******************************** object events **************************************//
-  // Empty dropdown content if no input is given
-  // $("#object").blur(function () {
-  //   if ($(this).val() === ''){
-  //     $('#objentities').empty();
-  //     objectIDlist = {};
-  //   }
-  // });
-  // // on active input in object box
-  // $("#object").on('input change', function () {
-  //   // disable subject if object input is non-empty
-  //   var val = $(this).val();
-  //   if (val !== '') {
-  //     $("#subject").prop('disabled', true);
-  //   }
-  //   else {
-  //    $("#subject").prop('disabled', false); 
-  //   }
-
-  //   // call for autocomplete options depending on KB option
-  //   // set subject ID on proper matching input
-  //   if (val !== '' && option === 'wikidata') {
-  //     if (val.split(':')[0] in objectIDlist){
-  //       objectID = objectIDlist[val.split(':')[0]];
-  //     }
-  //     else {
-  //       $(this).wdautocomplete(objentities, objectIDlist, val);
-  //     }
-  //   }
-  //   else if (val !== '' && (option === 'dbpedia_raw' || option === 'dbpedia_mapped')){
-  //     if (val in objectIDlist) {
-  //       objectID = objectIDlist[val];
-  //       objectID = objectID.split('/');
-  //       objectID = objectID[objectID.length-1];
-  //     }
-  //     else {
-  //       $(this).dbpautocomplete(objentities, objectIDlist, val);
-  //     }
-  //   }
-  //   else {
-  //     objectID = '';
-  //   }
-  // });
   // ******************************** KB selection events **************************************//
   // changes made on selecting a KB preference
   $("#WD-btn").click(function () {
@@ -760,8 +741,8 @@ $(document).ready(function () {
     $("#DBPm-btn").addClass("btn-outline-info").removeClass("btn-link");
     $("#predicate").predautocomplete();
   });
-  // ******************************** form refresh events **************************************//
-  $(".refresh").click(function () {
+  // ******************************** spo form refresh events **************************************//
+  $("#spoRefresh").click(function () {
     option = 'wikidata';
     $("#WD-btn").addClass("btn-outline-info").removeClass("btn-link");
     $("#DBPr-btn").addClass("btn-link").removeClass("btn-outline-info");
@@ -923,6 +904,13 @@ $(document).ready(function () {
     $('#navbar .active').removeClass('active');
     $(this).addClass('active');
   });
+
+  //  ******************************* nav controls return to top ********************************//
+  $('#footerReturn').click(function () {
+    $('#navbar .active').removeClass('active');
+    $('#navbar > li > a').first().addClass('active');
+  });
+
   // ******************************** free text KB selection events **************************************//
   // changes made on selecting a KB preference
   $("#ftWD-btn").click(function () {
@@ -1033,8 +1021,50 @@ $(document).ready(function () {
       });
     }
   });
+
+  // ************************* #ftq form refresh *****************************//
+  $('#ftqRefresh').click(function () {
+    $('#ftquery').val('');
+    ft_form_refresh();
+  });
+
+  // ************************* #ftq radio button events
+  $('input[type=radio][name=ftq_ents]').change(function () {
+
+    $('#displacy').children('div').slice(2).remove();
+    console.log('val: ', this.value);
+
+    if (this.value == 'All entities') {
+      var containerEl = document.getElementById('displacy');
+      ftresult.results_tags.forEach(function(item, index) {
+        var rownum = index + 1;
+        var result_row = document.createElement("div");
+        result_row.className = 'row vertical-align no-gutter result';
+        result_row.innerHTML = '<div class="col-2">' + rownum.toString() + '.</div><div class="col-10"></div>'
+
+        containerEl.appendChild(result_row);
+        var displacy = new displaCyENT({container: containerEl.querySelector('.result:last-child').querySelector('div:last-child')});
+        displacy.render(item.text, item.ents, 'all_matches', item.ent_similarity);
+      });
+    }
+    else if (this.value == 'Matched entities'){
+      var containerEl = document.getElementById('displacy');
+      ftresult.results_tags.forEach(function(item, index) {
+        var rownum = index + 1;
+        var result_row = document.createElement("div");
+        result_row.className = 'row vertical-align no-gutter result';
+        result_row.innerHTML = '<div class="col-2">' + rownum.toString() + '.</div><div class="col-10"></div>'
+
+        containerEl.appendChild(result_row);
+        var displacy = new displaCyENT({container: containerEl.querySelector('.result:last-child').querySelector('div:last-child')});
+        displacy.render(item.text, item.ents, 'matched_entities', item.ent_similarity);
+      });
+    }    
+  });
+
   // ************************* #ftq query event ******************************//
   $("#ftsearch").click(function () {
+    ft_form_refresh();
     console.log($("#ftquery").val());
     var query = $("#ftquery").val();
     // displacy.parse(query);
@@ -1046,7 +1076,8 @@ $(document).ready(function () {
       success : function(result, status){
         console.log("success!");
         console.log(result);
-        displacy.render(result, {}, query);
+        ftresult = result;
+        render_ner_results(ftresult);
       },
       error: function() {
         console.log("no results returned!");

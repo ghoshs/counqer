@@ -18,7 +18,10 @@ app.config['CORS_HEADERS'] = 'Content-Type'
 @app.route('/ftresults', methods=['GET', 'POST'])
 @cross_origin()
 def free_text_query():
-	query = json.loads(request.data.decode())['text']
+	## query parsing for displacy code
+	# query = json.loads(request.data.decode())['text']
+	# query parsing for ajax call
+	query = request.args.get('query')
 	print("Query:: ", query)
 	response = text_tags(query) if len(query) > 0 else {}
 	print(response)
@@ -37,6 +40,7 @@ def get_alignments():
 # this is a comment
 @app.route('/spoquery', methods=['GET', 'POST'])
 @cross_origin()
+# accepts ajax requests for SPO queries 
 def parse_request():
 	option = request.args.get('option')
 	subID = myurllib.unquote(request.args.get('subject'))

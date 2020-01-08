@@ -22,23 +22,28 @@ nav {
   z-index: 10;
 }
 
-nav ul {
+nav, nav ul, nav a {
   list-style-type: none;
   margin: 0;
   padding: 0;
   overflow: hidden;
   background-color: rgba(31,39,27,1);
 }
+.navbar-brand {
+  color: white !important;
+  font-family: Calibri,Candara,Segoe,Segoe UI,Optima,Arial,sans-serif; 
+}
 
-#navbar li {
-  float: left;
+#navbar {
+  float: right;
 }
 
 #navbar li a {
   display: block;
   color: white;
   text-align: center;
-  padding: 14px 16px;
+  padding-left: 10px;
+  padding-right: 10px;
   text-decoration: none;
 }
 
@@ -80,10 +85,10 @@ nav ul {
   flex-direction: row;
 }
 
-#home {
+/*#home {
   padding-top: 0px !important;
 }
-
+*/
 #home [class*='col-sm-9'] {
   padding-right: 5px;
 }
@@ -160,6 +165,14 @@ table.dataTable thead .sorting_desc:before,
 table.dataTable thead .sorting_desc_disabled:after,
 table.dataTable thead .sorting_desc_disabled:before {
 bottom: .5em;
+}
+
+#displacy .query div{
+  padding: 2px;
+}
+
+#displacy .result div{
+  padding: 5px;
 }
 
 #footer {
