@@ -19,7 +19,7 @@ The app runs on port 5000 which can be changed by editing the port number in the
 
 Location: ./
 
-Wrapper class that returns Bing search results on the requested query and performs NER on the query and search snippets. The annotated results (SpaCy annotations) are then returned as results to the demo page. 
+`free_text_search.py` - Wrapper function that returns Bing search results on the requested query and performs NER on the query and search snippets. The annotated results (SpaCy annotations) are then returned as results to the demo page. 
 
 **Note**: Remember to update sys path to correct location of the `flask_app` directory.
 
@@ -29,12 +29,10 @@ Wrapper class that returns Bing search results on the requested query and perfor
 
 Location: ./bing_search/
 
-1. bing_search.py - retrieves top n search results from Bing.
+`bing_search.py` - retrieves top n search results from Bing.
 
 ## Named Entity Recognition
 
-Location: ./named_entity_recognition/
+Location: ./my_entity_matcher/
 
-1. named_entity_recognition.py - uses SpaCy to annotate query and search result snippets. 
-
-2. match_entities.py - 
+`my_entity_matcher.py` - uses SpaCy to annotate query and search result snippets. Additional functionality to link similar entities in the text snippets to the queried entity. 
