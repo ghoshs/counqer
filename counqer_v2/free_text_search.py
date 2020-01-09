@@ -2,8 +2,8 @@ import sys
 import spacy
 from spacy import displacy
 #### server edit
-sys.path.append('/var/www/counqer_v2/flask_app')
-# sys.path.append('/home/shrestha/Documents/PhD/counqer_v2/flask_app')
+sys.path.append('/var/www/counqer_v2')
+# sys.path.append('/home/shrestha/Documents/PhD/counqer_v2/counqer_v2')
 
 from bing_search.bing_search import call_bing_api
 import my_entity_matcher.my_entity_matcher as my_ner

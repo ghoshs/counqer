@@ -10,7 +10,7 @@ case VI : <?s1,p1,o1>; p1 = inverse EP; related predicates are CP
 
 import sys
 ## server edits ##
-sys.path.append('/var/www/counqer_v2/flask_app')
+sys.path.append('/var/www/counqer_v2')
 
 import os
 import csv
@@ -34,12 +34,12 @@ except ImportError:
 wd_labels = {}
 
 ## server edits ##
-fname_score_wd = '/var/www/counqer_v2/flask_app/static/data/alignments/wikidata.csv'
-fname_score_dbpr = '/var/www/counqer_v2/flask_app/static/data/alignments/dbpedia_raw.csv'
-fname_score_dbpm = '/var/www/counqer_v2/flask_app/static/data/alignments/dbpedia_mapped.csv'
-fname_wd_prop_label = '/var/www/counqer_v2/flask_app/static/data/pred_labels/wikidata_labels.csv'
-fpath_pred_property = '/var/www/counqer_v2/flask_app/static/data/pred_property/'
-fpath_set_predicates = '/var/www/counqer_v2/flask_app/static/data/set_predicates/'
+fname_score_wd = '/var/www/counqer_v2/static/data/alignments/wikidata.csv'
+fname_score_dbpr = '/var/www/counqer_v2/static/data/alignments/dbpedia_raw.csv'
+fname_score_dbpm = '/var/www/counqer_v2/static/data/alignments/dbpedia_mapped.csv'
+fname_wd_prop_label = '/var/www/counqer_v2/static/data/pred_labels/wikidata_labels.csv'
+fpath_pred_property = '/var/www/counqer_v2/static/data/pred_property/'
+fpath_set_predicates = '/var/www/counqer_v2/static/data/set_predicates/'
 
 ## server edits ##
 http_proxy = 'http://dmz-gw.mpi-klsb.mpg.de:3128'
