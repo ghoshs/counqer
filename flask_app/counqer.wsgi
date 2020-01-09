@@ -5,6 +5,6 @@ import sys
 import logging
 
 logging.basicConfig(stream=sys.stderr)
-sys.path.insert(0, '/var/www/flask_app/')
+sys.path.insert(0, '/var/www/counqer_v2/flask_app/')
 
 from counqer import app as application
