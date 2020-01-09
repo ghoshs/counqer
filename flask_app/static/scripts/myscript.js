@@ -20,12 +20,12 @@ var ftoption = 'wikidata';
 var ftresult = {};
 // url to the data directory which has the wikidata/wd_predicates.json and dbpedia/dbp_predicates.json files
 // SimpleHTTPServer invoked in localhost on demo directory
-var localpath ='http://localhost:9000/static/';
-var flaskurl = 'http://localhost:5000/'; 
+// var localpath ='http://localhost:9000/static/';
+// var flaskurl = 'http://localhost:5000/'; 
 
 /** server edits**/
-// var localpath ='https://counqer.mpi-inf.mpg.de/static/';
-// var flaskurl = 'https://counqer.mpi-inf.mpg.de/'; 
+var localpath ='https://counqer.mpi-inf.mpg.de/static/';
+var flaskurl = 'https://counqer.mpi-inf.mpg.de/v2/'; 
 
 // function to process the jsonp (json padding) function returned by the json files and
 // populate the predicate options
