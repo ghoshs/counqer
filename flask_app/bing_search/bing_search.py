@@ -21,13 +21,13 @@ def call_bing_api(query, count=10, subscription_key='2faf6a70e52a46318ec658b2a14
 			snippets.append(webpage)
 	return snippets
 
-def main():
-	query = 'James Garfield children'
-	subscription_key = '2faf6a70e52a46318ec658b2a14c891c'
-	# global num_api_calls
-	# num_api_calls = 0
-	results = call_bing_api(query, subscription_key)
-	print(results)
+# def main():
+# 	query = 'James Garfield children'
+# 	subscription_key = '2faf6a70e52a46318ec658b2a14c891c'
+# 	# global num_api_calls
+# 	# num_api_calls = 0
+# 	results = call_bing_api(query, subscription_key)
+# 	print(results)
 
 # if __name__ == '__main__':
 # 	main()
