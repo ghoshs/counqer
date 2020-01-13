@@ -15,6 +15,9 @@ The app runs on port 5000 which can be changed by editing the port number in the
    You can also run this app on a web server. Install apache and configure the server. CounQER is already configured with the mod WSGI file. Make necessary changes in the `server edits` sections of the code to replace the paths with your server paths.
    The app is enables by the command 'apache2 a2ensite <your-server>'
 
+### SPO query and top KB alignments
+Based on results from CounQER v1 on identifying set predicates from KB and aligning related set-predicates.
+
 ### Free Text Search
 
 Location: ./

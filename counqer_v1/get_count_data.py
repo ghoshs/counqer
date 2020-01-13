@@ -10,7 +10,7 @@ case VI : <?s1,p1,o1>; p1 = inverse EP; related predicates are CP
 
 import sys
 ## server edits ##
-sys.path.append('/var/www/counqer_v2')
+# sys.path.append('/var/www/counqer_v1')
 
 import os
 import csv
@@ -24,27 +24,27 @@ try:
 except ImportError:
 	import urllib.request as myurllib
 
-# fname_score_wd = 'static/data/alignments/wikidata.csv'
-# fname_score_dbpm = 'static/data/alignments/dbpedia_mapped.csv'
-# fname_score_dbpr = 'static/data/alignments/dbpedia_raw.csv'
-# fname_wd_prop_label = 'static/data/pred_labels/wikidata_labels.csv'
-# fpath_pred_property = 'static/data/pred_property/'
-# fpath_set_predicates = 'static/data/set_predicates/'
+fname_score_wd = 'static/data/alignments/wikidata.csv'
+fname_score_dbpm = 'static/data/alignments/dbpedia_mapped.csv'
+fname_score_dbpr = 'static/data/alignments/dbpedia_raw.csv'
+fname_wd_prop_label = 'static/data/pred_labels/wikidata_labels.csv'
+fpath_pred_property = 'static/data/pred_property/'
+fpath_set_predicates = 'static/data/set_predicates/'
 
 wd_labels = {}
 
 ## server edits ##
-fname_score_wd = '/var/www/counqer_v2/static/data/alignments/wikidata.csv'
-fname_score_dbpr = '/var/www/counqer_v2/static/data/alignments/dbpedia_raw.csv'
-fname_score_dbpm = '/var/www/counqer_v2/static/data/alignments/dbpedia_mapped.csv'
-fname_wd_prop_label = '/var/www/counqer_v2/static/data/pred_labels/wikidata_labels.csv'
-fpath_pred_property = '/var/www/counqer_v2/static/data/pred_property/'
-fpath_set_predicates = '/var/www/counqer_v2/static/data/set_predicates/'
+# fname_score_wd = '/var/www/counqer_v1/static/data/alignments/wikidata.csv'
+# fname_score_dbpr = '/var/www/counqer_v1/static/data/alignments/dbpedia_raw.csv'
+# fname_score_dbpm = '/var/www/counqer_v1/static/data/alignments/dbpedia_mapped.csv'
+# fname_wd_prop_label = '/var/www/counqer_v1/static/data/pred_labels/wikidata_labels.csv'
+# fpath_pred_property = '/var/www/counqer_v1/static/data/pred_property/'
+# fpath_set_predicates = '/var/www/counqer_v1/static/data/set_predicates/'
 
-## server edits ##
-http_proxy = 'http://dmz-gw.mpi-klsb.mpg.de:3128'
-https_proxy = 'https://dmz-gw.mpi-klsb.mpg.de:3128'
-myurllib.install_opener(myurllib.build_opener(myurllib.ProxyHandler({'http': http_proxy, 'https': https_proxy})))
+# ## server edits ##
+# http_proxy = 'http://dmz-gw.mpi-klsb.mpg.de:3128'
+# https_proxy = 'https://dmz-gw.mpi-klsb.mpg.de:3128'
+# myurllib.install_opener(myurllib.build_opener(myurllib.ProxyHandler({'http': http_proxy, 'https': https_proxy})))
 
 # read prednames and map to ID
 def get_predID(predicate):
@@ -136,9 +136,9 @@ def wd_sparql(query, pred_list):
 	sparql = SPARQLWrapper("https://query.wikidata.org/sparql", agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11")
 	sparql.setReturnFormat(JSON)
 	## server edits
-	param = sparql.addParameter('http', http_proxy)
+	# param = sparql.addParameter('http', http_proxy)
 	# print('set param', param)
-	param = sparql.addParameter('https', https_proxy)
+	# param = sparql.addParameter('https', https_proxy)
 	# print('set param', param)
 	wd_prefix = 'http://wikidata.org/entity/'
 	# idx = 0
@@ -394,8 +394,8 @@ def dbp_sparql(query, pred_list):
 	sparql = SPARQLWrapper("http://dbpedia.org/sparql")
 	sparql.setReturnFormat(JSON)
 	## server edits
-	sparql.addParameter('http', http_proxy)
-	sparql.addParameter('https', https_proxy)
+	# sparql.addParameter('http', http_proxy)
+	# sparql.addParameter('https', https_proxy)
 	prefixes = """PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>

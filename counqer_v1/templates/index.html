@@ -9,6 +9,9 @@
 	<script src="{{ url_for('static', filename='scripts/jquery.min.js') }}"></script>
 	<!-- JQuery csv handling library -->
 	<script src="{{ url_for('static', filename='scripts/jquery.csv.min.js') }}"></script>
+	<!-- JQuery datatables script -->
+	<script src="{{ url_for('static', filename='DataTables/datatables.min.js') }}"></script>
+	<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='DataTables/datatables.min.css') }}"/>
 	<!-- Spacy display script -->
 	<script src="{{ url_for('static', filename='scripts/displacy-ent.js') }}"></script>
 	<!-- Bootstrap files -->
@@ -16,7 +19,7 @@
 	<script src="{{ url_for('static', filename='scripts/bootstrap.min.js') }}"></script>
 	<!-- stylesheet -->
 	<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/mystyles.css') }}">
-	<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/displacy-ent.css') }}">
+	<!-- <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/displacy-ent.css') }}"> -->
 </head>
 <body>
 <nav class='container sticky'>
@@ -25,9 +28,9 @@
 	</a>
 	<!-- <button type="button" data-toggle="collapse" data-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation" class="navbar-toggler"><span class="navbar-toggler-icon"></span></button> -->
 	<ul id='navbar' class=navbar-nav>
-		<!-- <li><a class="active" href="#">SPO query</a></li> -->
-		<li><a class="active" href="#ftq">Free text query</a></li>
-		<!-- <li><a href="#topalign">Top alignments</a></li> -->
+		<li><a class="active" href="#">SPO query</a></li>
+		<!-- <li><a href="#ftq">Free text query</a></li> -->
+		<li><a href="#topalign">Top alignments</a></li>
 	</ul>
 </nav>
 <!-- <div class="jumbotron text-center" id="header">
@@ -35,18 +38,20 @@
 	<h2>Counting Quantifiers and Entity-valued predicates</h2>
 </div> -->
 
-<!-- <div class="container body" id="home">
+<div class="container body" id="home">
 	<h2>SPO query on set predicates</h2>
 	<hr>
 	<div class="row">
 		<p>Provide the name of an entity (either a subject or an object) and pick any predicate from the dropdown. CounQER retrieves SPO triples from Knowledge Bases which answer your query. Additionally, it also tries to provide supplementary count related facts with respect to the queried entity.<br>
 		You can choose between three Knowledge Bases - <strong>Wikidata</strong> <img src="{{ url_for('static', filename='images/wikidataLogo.png') }}" width="30">, <strong>DBpedia raw extraction</strong> <img src="{{ url_for('static', filename='images/DBpediarawLogo.png') }}" width="30"> and <strong>DBpedia mapping-based extraction</strong> <img src="{{ url_for('static', filename='images/DBpediamapLogo.png') }}" width="30">.<br>
 		You may also try out some pre-defined queries in the examples.</p>
-		
+		<!-- <hr> -->
 	</div>
+	<!-- <form class="row"> -->
 	<div class="row vertical-align no-gutter">
 		<div class="col-sm-1" id="spoRefresh">
 			<button type="button" class="btn btn-link">
+				<!-- <img src="images/ocat2.png" width="50"> -->
 				<span class="glyphicon glyphicon-refresh" style="font-size: 2.7em"></span>
 			</button>
 		</div>
@@ -80,7 +85,7 @@
 					<button type="button" class="btn btn-link" id="DBPm-btn">
 						<img src="{{ url_for('static', filename='images/DBpediamapLogo.png') }}" width="30" title="DBP: mapping KB">
 					</button>
-				
+				<!-- </div> -->
 			</div>
 		</div>
 	</div>
@@ -88,8 +93,10 @@
 		<div class="alert alert-danger alert-dismissible">
 		</div>
 	</div>
+	<!-- result section with query status bar, examples and returned SPO triples  -->
 	<div class="row no-gutter" style="justify-content: left">
 		<div class="col-sm-8">	
+			<!-- form refresh & query status -->
 			<div class="row no-gutter">
 				<div class="col-sm-2"></div>
 				<div id="displayalert" class="col-sm-8" role="alert" style="display: none" data-hide="displayalert">
@@ -108,6 +115,8 @@
 					<tr id="p1stat" style="display: none"></tr>
 				</tbody>
 			</table>
+			<!-- <br> -->
+			<!-- related result section -->
 			<div class="row no-gutter text-center">
 				<table class="table second" style="display: none">
 					<thead>
@@ -118,6 +127,7 @@
 				</table>
 			</div>
 		</div>
+		<!-- Example column -->
 		<div class="col-sm-4" id="examples">
 				<div class="row no-gutter">
 					<strong>Examples</strong>
@@ -165,21 +175,26 @@
 						<img src="{{ url_for('static', filename='images/DBpediamapLogo.png') }}" width="30"> Kolkata, population total, ?
 					</button>
 				</div>
+				<!-- <div class="row">
+					<button type="button" class="btn btn-link" id="dbpm_ideal_2">
+						<img src="{{ url_for('static', filename='images/DBpediamapLogo.png') }}" width="30"> Lufthansa, hub airport, ?
+					</button>
+				</div> -->
 				<div class="row no-gutter">
 					<sup id="fnIdeal">*We show some ideal aligments in KBs which are missed by CounQER.
+						<!-- <a href="#divIdeal">↩</a> -->
 					</sup>
 				</div>
 		</div>
 	</div>
-</div> -->
+</div>
 
-<div class="container body" id="ftq">
+<!-- <div class="container body" id="ftq">
 	<h2>Free-form query on set predicates</h2>
 	<hr>
 	<div class="row vertical-align no-gutter">
 		<div class="col-sm-1" id="ftqRefresh">
 			<button type="button" class="btn btn-link">
-				<!-- <img src="images/ocat2.png" width="50"> -->
 				<span class="glyphicon glyphicon-refresh" style="font-size: 2.7em"></span>
 			</button>
 		</div>
@@ -195,17 +210,6 @@
 			</button>
 		</div>
 		<div class="col-sm-3">
-			<!-- <div class="btn-grp">
-					<button type="button" class="btn btn-outline-info" id="ftWD-btn">
-						<img src="{{ url_for('static', filename='images/wikidataLogo.png') }}" width="30" title="Wikidata">
-					</button>
-					<button type="button" class="btn btn-link" id="ftDBPr-btn">
-						<img src="{{ url_for('static', filename='images/DBpediarawLogo.png') }}" width="30" title="DBP: raw KB">
-					</button>
-					<button type="button" class="btn btn-link" id="ftDBPm-btn">
-						<img src="{{ url_for('static', filename='images/DBpediamapLogo.png') }}" width="30" title="DBP: mapping KB">
-					</button>
-			</div> -->
 			<label class="radio-inline">
 				<input type="radio" name="ftq_ents" id="ftq_all_ents" checked value='All entities'> All entities
 			</label>
@@ -217,9 +221,9 @@
 	<div class="row vertical-align no-gutter">
 		<div class="col-sm-12" id="displacy"></div>
 	</div>
-</div>
+</div> -->
 
-<!-- <div class="container body" id="topalign">
+<div class="container body" id="topalign">
 	<h2>Top alignments from all KBs</h2>
 	<hr>
 	<ul class="nav nav-tabs" id="nav_topalign">
@@ -227,6 +231,7 @@
 		<li><a data-toggle="tab" href="#wd_topalign">Wikidata</a></li>
 		<li><a data-toggle="tab" href="#dbpr_topalign">DBpedia raw</a></li>
 		<li><a data-toggle="tab" href="#dbpm_topalign">DBpedia mapped</a></li>
+		<!-- <li><a data-toggle="tab" href="#menu3">Menu 3</a></li> -->
 	</ul>
 	<div class="tab-content">
 		<div id="ow_topalign" class="tab-pane fade in active">
@@ -282,7 +287,7 @@
 	<div class="row no-gutter">
 		<sup>We denote alignemnts missed by CounQER with a <strong>*</strong> by the scores.</sup>
 	</div>
-</div> -->
+</div>
 
 <div id="footer">
 	<div class="row vertical-align no-gutter">
@@ -293,7 +298,7 @@
 			<a href="https://imprint.mpi-klsb.mpg.de/inf/counqer.mpi-inf.mpg.de">Imprint</a> |
 			<a href="https://data-protection.mpi-klsb.mpg.de/inf/counqer.mpi-inf.mpg.de">Data Protection</a> |
 			<a href="mailto:ghoshs@mpi-inf.mpg.de">Contact</a> |
-			<a id='footerReturn'>Return to top</a>
+			<a href="#home" id='footerReturn'>Return to top</a>
 		</div>
 	</div>
 </div>
