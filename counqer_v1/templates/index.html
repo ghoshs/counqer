@@ -13,7 +13,7 @@
 	<script src="{{ url_for('static', filename='DataTables/datatables.min.js') }}"></script>
 	<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='DataTables/datatables.min.css') }}"/>
 	<!-- Spacy display script -->
-	<script src="{{ url_for('static', filename='scripts/displacy-ent.js') }}"></script>
+	<!-- <script src="{{ url_for('static', filename='scripts/displacy-ent.js') }}"></script> -->
 	<!-- Bootstrap files -->
 	<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/bootstrap.min.css') }}">
 	<script src="{{ url_for('static', filename='scripts/bootstrap.min.js') }}"></script>
@@ -188,40 +188,6 @@
 		</div>
 	</div>
 </div>
-
-<!-- <div class="container body" id="ftq">
-	<h2>Free-form query on set predicates</h2>
-	<hr>
-	<div class="row vertical-align no-gutter">
-		<div class="col-sm-1" id="ftqRefresh">
-			<button type="button" class="btn btn-link">
-				<span class="glyphicon glyphicon-refresh" style="font-size: 2.7em"></span>
-			</button>
-		</div>
-		<div class="col-sm-6">
-			<div class="input-group">
-				<span class="input-group-addon">Query</span>
-				<input autoComplete="off" id="ftquery" type="text" class="form-control" name="query" placeholder="Start typing..">
-			</div>
-		</div>
-		<div class="col-sm-1">
-			<button type="button" class="btn btn-link" id="ftsearch">
-				<span class="glyphicon glyphicon-search" style="font-size: 2em"></span>
-			</button>
-		</div>
-		<div class="col-sm-3">
-			<label class="radio-inline">
-				<input type="radio" name="ftq_ents" id="ftq_all_ents" checked value='All entities'> All entities
-			</label>
-			<label class="radio-inline">
-				<input type="radio" name="ftq_ents" id="ftq_matched_ents" value='Matched entities'> Matched entities
-			</label>
-		</div>
-	</div>
-	<div class="row vertical-align no-gutter">
-		<div class="col-sm-12" id="displacy"></div>
-	</div>
-</div> -->
 
 <div class="container body" id="topalign">
 	<h2>Top alignments from all KBs</h2>

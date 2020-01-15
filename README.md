@@ -13,7 +13,13 @@ The app runs on port 5000 which can be changed by editing the port number in the
 2. Server setup
 
    You can also run this app on a web server. Install apache and configure the server. CounQER is already configured with the mod WSGI file. Make necessary changes in the `server edits` sections of the code to replace the paths with your server paths.
-   The app is enables by the command 'apache2 a2ensite <your-server>'
+   The app is enables by the command `apache2 a2ensite <your-server>`
+
+   	Files with server changes 
+   	1. `counqer_v1/get_count_data.py`
+   	2. `counqer_v1/static/scripts/myscript.js`
+   	3. `counqer_v2/free_text_search.py`
+   	4. `counqer_v2/static/scripts/myscript.js`
 
 ### SPO query and top KB alignments
 Based on results from CounQER v1 on identifying set predicates from KB and aligning related set-predicates.
@@ -39,3 +45,12 @@ Location: ./bing_search/
 Location: ./my_entity_matcher/
 
 `my_entity_matcher.py` - uses SpaCy to annotate query and search result snippets. Additional functionality to link similar entities in the text snippets to the queried entity. 
+
+
+#### Debugging
+
+1. UnicodeDecodeError: 'ascii' codec can't decode byte 0xe2 in position
+
+Check Apache lang configuration. [Is LC_ALL set to utf-8?](https://itekblog.com/ascii-codec-cant-encode-characters-in-position/)
+
+2. counqer.mpi-inf.mpg.de is the main landing page. The html script is at /var/www/html/index.html

@@ -27,31 +27,6 @@ def free_text_query():
 	print(response)
 	return jsonify(response)
 
-# @app.route('/getalignments', methods=['GET','POST'])
-# @cross_origin()
-# def get_alignments():
-# 	print(request.args.get('kbname'))
-# 	filename = request.args.get('kbname')+".csv"
-# 	try:
-# 		return send_from_directory('static/data/alignments', filename=filename, as_attachment=True, cache_timeout=0)
-# 	except FileNotFoundError:
-# 		abort(404)
-
-# this is a comment
-# @app.route('/spoquery', methods=['GET', 'POST'])
-# @cross_origin()
-# # accepts ajax requests for SPO queries 
-# def parse_request():
-# 	option = request.args.get('option')
-# 	subID = myurllib.unquote(request.args.get('subject'))
-# 	objID = myurllib.unquote(request.args.get('object'))
-# 	predID = request.args.get('predicate')
-# 	print('counqer.py: L21: ', option, subID, predID, objID)
-# 	# print(option, subID, predID)
-# 	response = related_predicate(option, subID, predID, objID)
-# 	# response = related_predicate(option, subID, predID)
-# 	return jsonify(response)
-
 @app.route('/')
 @cross_origin()
 def display_mainpage():

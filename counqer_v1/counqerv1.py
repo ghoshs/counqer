@@ -26,7 +26,7 @@ def get_alignments():
 @cross_origin()
 def get_predicate_list():
 	print(request.args.get('fname'))
-	fname = request.args.get('fname')
+	filename = request.args.get('fname')
 	try:
 		return send_from_directory('static/data/set_predicates', filename=filename, as_attachment=True, cache_timeout=0)
 	except FileNotFoundError:

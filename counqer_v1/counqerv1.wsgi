@@ -1,5 +1,6 @@
-activate_this = '/root/main/env/bin/activate_this.py'
-execfile(activate_this, dict(__file__=activate_this))
+activate_this = '/root/main/venv_py3/bin/activate_this.py'
+with open(activate_this) as file_:
+	exec(file_.read(), dict(__file__=activate_this))
 
 import sys
 import logging

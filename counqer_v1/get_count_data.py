@@ -6,11 +6,14 @@ case III: <s1,p1,?o1>; p1 = direct EP; related predicates are CP
 case IV : <s1,p1,?o1>; p1 = inverse EP; related predicates are CP
 case V  : <?s1,p1,o1>; p1 = direct EP; related predicates are CP
 case VI : <?s1,p1,o1>; p1 = inverse EP; related predicates are CP
+
+## server edits  required: 4 ##
+
 '''
 
 import sys
 ## server edits ##
-# sys.path.append('/var/www/counqer_v1')
+sys.path.append('/var/www/counqer_v1')
 
 import os
 import csv
@@ -64,7 +67,7 @@ def get_predID(predicate):
 def get_pred_stats(response, kb_name):
 	stats = {'response': {}, 'response_inv': {}}
 	set_predicates = open(fpath_set_predicates+kb_name+'.json').read()
-	set_predicates = set_predicates.split('jsonCallback(')[1][:-1]
+	# set_predicates = set_predicates.split('jsonCallback(')[1][:-1]
 	set_predicates = json.loads(set_predicates)
 
 	data = pd.read_csv(fpath_pred_property+kb_name+'.csv')
@@ -137,9 +140,9 @@ def wd_sparql(query, pred_list):
 	sparql.setReturnFormat(JSON)
 	## server edits
 	# param = sparql.addParameter('http', http_proxy)
-	# print('set param', param)
+	# # print('set param', param)
 	# param = sparql.addParameter('https', https_proxy)
-	# print('set param', param)
+	# # print('set param', param)
 	wd_prefix = 'http://wikidata.org/entity/'
 	# idx = 0
 	flag_query1 = 0
