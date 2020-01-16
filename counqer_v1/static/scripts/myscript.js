@@ -19,7 +19,9 @@ var predrequest = new XMLHttpRequest();
 var ftoption = 'wikidata';
 var ftresult = {};
 
-var flaskurl = 'http://localhost:5000/'; 
+var wd_labels = {};
+
+var flaskurl = 'http://localhost:5000/';
 
 /** server edits**/
 // var flaskurl = 'https://counqer.mpi-inf.mpg.de/v1/'; 
@@ -56,6 +58,7 @@ function result_refresh () {
   $("#s1").empty();
   $("#p1").empty();
   $("#o1").empty();
+  $("#q1 a").attr("href", "#");
   $(".second > tbody").empty();
   $(".second > thead > tr > td").empty();
   $(".second").hide();
@@ -147,15 +150,16 @@ function gettriples(response) {
 }
 
 // add results to related predicates
-function add_child (s2, p2, o2, pstat, direction='inverse', type='predE') {
+function add_child (s2, p2, o2, q2, pstat, direction='inverse', type='predE') {
   // console.log('add child ', s2, o2);
   if ($(".second").is(":hidden")) {
     $(".second").show();
   }
-  text = '<tr>' +
+  text = '<tr class="triple">' +
          '<td class="s2 partial">' + insert_trunc_and_full_result(s2) + '</td>' +
          '<td > <div class="col-12 btn btn-warning p2">' + p2 + '</div></td>' +
          '<td class="o2 partial">' + insert_trunc_and_full_result(o2) + '</td>' +
+         '<td class="q2"><a href="' + q2 + '" target="_blank"</a><span class="glyphicon glyphicon-search" style="font-size: 1em"></span></td>' +
          '</tr>' +
          '<tr class="p2stat" style="display: none">' + insert_pstats(pstat, direction, type) + '</tr>';
   $(".second > tbody").append(text);
@@ -259,7 +263,7 @@ function insert_trunc_and_full_result (entity) {
 
 // function to add elements containing predicate statistics
 function insert_pstats (pstats, direction, type='predE') {
-  console.log(pstats);
+  // console.log(pstats);
   var val = '';
   if (type == 'predC')  {
     if (pstats[0]['numeric_avg']) {
@@ -268,7 +272,7 @@ function insert_pstats (pstats, direction, type='predE') {
     else {
       val = '-'
     }
-    text = '<td colspan="3"> Average value: ' + val + ' </td>'
+    text = '<td colspan="4"> Average value: ' + val + ' </td>'
   }
   else {
     if (pstats[0]['persub_avg_ne']) {
@@ -277,7 +281,7 @@ function insert_pstats (pstats, direction, type='predE') {
     else {
       val = '-'
     }
-    text = '<td colspan="3"> Average entities per subject: ' + val + ' </td>'
+    text = '<td colspan="4"> Average entities per subject: ' + val + ' </td>'
   }
   return(text);
 }
@@ -285,7 +289,7 @@ function insert_pstats (pstats, direction, type='predE') {
 // funtion to populate table after getting results
 function displayresponse (results) {
   objectIDlist = subjectIDlist
-  var triple1={'s1': {}, 'p1': '', 'o1': {}};
+  var triple1={'s1': {}, 'p1': '', 'o1': {}, 'q': ''};
   var triple2={'direct': [], 'inverse': []};
   console.log(results);
   if ('error' in results) {
@@ -336,6 +340,7 @@ function displayresponse (results) {
       triple1['s1'] = join_entities(results['response'][0]['s1Label']);
       triple1['type'] = 'direct';
     }
+    triple1['q'] = results['response'][0]['q'];
     triple2['direct'] = gettriples(results['response']);
   }
   else if ('error' in results['response']) {
@@ -347,24 +352,29 @@ function displayresponse (results) {
       triple1['s1'] = join_entities(results['response_inv'][0]['s1Label']);
       triple1['type'] = 'inverse';
     }
+    triple1['q'] = results['response_inv'][0]['q'];
     triple2['inverse'] = gettriples(results['response_inv']);
   }
   else {
     if ('o1Label' in results['response'][0]) {
       triple1['o1'] = join_entities(results['response'][0]['o1Label']);
       triple1['type'] = 'direct';
+      triple1['q'] = results['response'][0]['q'];
     }
     if ('s1Label' in results['response'][0]) {
       triple1['s1'] = join_entities(results['response'][0]['s1Label']);
       triple1['type'] = 'direct';
+      triple1['q'] = results['response'][0]['q'];
     }
     if ('o1Label' in results['response_inv'][0]) {
       triple1['o1'] = join_entities(results['response_inv'][0]['o1Label']);
       triple1['type'] = 'inverse';
+      triple1['q'] = results['response_inv'][0]['q'];
     }
     if ('s1Label' in results['response_inv'][0]) {
       triple1['s1'] = join_entities(results['response_inv'][0]['s1Label']);
       triple1['type'] = 'inverse';
+      triple1['q'] = results['response_inv'][0]['q'];
     }
     triple2['direct'] = gettriples(results['response']);
     triple2['inverse'] = gettriples(results['response_inv']);
@@ -378,6 +388,7 @@ function displayresponse (results) {
       $("#s1").html(insert_trunc_and_full_result(triple1['s1']));
       $("#p1").html(triple1['p1']);
       $("#o1").html(insert_trunc_and_full_result(triple1['o1']));
+      $("#q1 a").attr("href", triple1['q']);
       if (results['get'] == 'predE'){
         $("#p1stat").html(insert_pstats(results['stats']['response'][triple1['p1']], 'direct', 'predC'));
       }
@@ -390,6 +401,7 @@ function displayresponse (results) {
       $("#s1").html(insert_trunc_and_full_result(triple1['o1']));
       $("#p1").html(triple1['p1']);
       $("#o1").html(insert_trunc_and_full_result(triple1['s1']));
+      $("#q1 a").attr("href", triple1['q']);
       if (results['get'] == 'predE'){
         $("#p1stat").html(insert_pstats(results['stats']['response_inv'][triple1['p1']], 'inverse', 'predC'));
       }
@@ -429,7 +441,7 @@ function displayresponse (results) {
         // }
         // add related results 
         if ((results['get'] === 'predC' && triple1['s1']['full'].indexOf(';') === -1) || (results['get'] === 'predE')){
-          add_child(triple1['s1'], triple2['direct'][i]['p2'], triple2['direct'][i]['o2'], results['stats']['response'][triple2['direct'][i]['p2']], 'direct', results['get']);
+          add_child(triple1['s1'], triple2['direct'][i]['p2'], triple2['direct'][i]['o2'], triple2['direct'][i]['q'], results['stats']['response'][triple2['direct'][i]['p2']], 'direct', results['get']);
         }
       }
     }
@@ -451,17 +463,17 @@ function displayresponse (results) {
           if ('s1' in results && triple1['s1']['full'].indexOf(';') === -1) {
             // add inv results if s1 is a single entity
               // console.log(triple1.s1.full, triple1.s1.full.indexOf(';'));
-              add_child(triple1['s1'], triple2['inverse'][i]['p2'], triple2['inverse'][i]['o2'], results['stats']['response_inv'][triple2['inverse'][i]['p2']], 'inverse', 'predC');
+              add_child(triple1['s1'], triple2['inverse'][i]['p2'], triple2['inverse'][i]['o2'], triple2['inverse'][i]['q'], results['stats']['response_inv'][triple2['inverse'][i]['p2']], 'inverse', 'predC');
           }
           // queried object is the subject for related predicates
           else if (triple1['o1']['full'].indexOf(';') === -1){
             // add inv results if o1 is a single entity
               // console.log('inv: ', triple1.o1.full, triple1.o1.full.indexOf(';'));
-              add_child(triple1['o1'], triple2['inverse'][i]['p2'], triple2['inverse'][i]['o2'], results['stats']['response_inv'][triple2['inverse'][i]['p2']], 'inverse', 'predC');
+              add_child(triple1['o1'], triple2['inverse'][i]['p2'], triple2['inverse'][i]['o2'], triple2['inverse'][i]['q'], results['stats']['response_inv'][triple2['inverse'][i]['p2']], 'inverse', 'predC');
           }
         }
         if (results['get'] === 'predE') {
-          add_child(triple2['inverse'][i]['s2'], triple2['inverse'][i]['p2'], triple1['s1'], results['stats']['response_inv'][triple2['inverse'][i]['p2']]);
+          add_child(triple2['inverse'][i]['s2'], triple2['inverse'][i]['p2'], triple1['s1'], triple2['inverse'][i]['q'], results['stats']['response_inv'][triple2['inverse'][i]['p2']]);
         }
       }
     }
@@ -590,19 +602,62 @@ function ft_form_refresh() {
   ftresult = {};
 }
 
+// get Wikidata property labels file
+function get_wd_labels() {
+  $.ajax({
+    type : 'GET',
+    url : flaskurl+'getwdlabels',
+    async: false,
+    dataType: 'text',
+    success: function(result, status) {
+      var labels = $.csv.toObjects(result);
+      labels.forEach(function (item) {
+        wd_labels[item['Property'].split('/').pop()] = item['PropLabel'];
+      });
+      // console.log('Done!',wd_labels);
+    },
+    error: function(){
+      console.log("Couldn't load Wikidata labels. Try again!");
+    },
+    cache: false 
+  });
+}
 
 // generate table entries for top alignments from each item
-function get_table_data(item) {
+function get_table_data(item, wd=false) {
   var asterix = '';
   if (parseFloat(item['score']).toFixed(3) > 0.9) {
     asterix = '*';
   }
+  
+  var labelE = item['predE'].split('/').pop();
+  var labelC = item['predC'].split('/').pop();
+  if (wd == true) {
+    if (labelE.split('_inv').shift() in wd_labels){
+      labelE = labelE + ': ' + wd_labels[labelE.split('_inv').shift()];  
+    }
+    if (labelC in wd_labels){
+      labelC = labelC + ': ' + wd_labels[labelC];  
+    }
+  }
   var htmldata = '<tr>' + 
-                 '<td><a href="' + item['predE'] + '">' + item['predE'].split('/').pop() + '</a></td>' +
-                 '<td><a href="' + item['predC'] + '">' + item['predC'].split('/').pop() + '</a></td>' +
+                 '<td><a href="' + item['predE'] + '" target="_blank">' + labelE + '</a></td>' +
+                 '<td><a href="' + item['predC'] + '" target="_blank">' + labelC + '</a></td>' +
                  '<td>' + parseFloat(item['score']).toFixed(3) + asterix + '</td>' +
                  '</tr>';
   return htmldata;
+}
+
+// function to populate alignment results
+function fill_alignment_table(result, elementID, has_wd_label) {
+  var data = $.csv.toObjects(result);
+  data.forEach(function (item) {
+    $(elementID + " > tbody").append(get_table_data(item, has_wd_label));
+  });
+  $(elementID).DataTable({
+    "order": [[2,"desc"]]
+  });
+  $('.dataTables_length').addClass('bs-select');
 }
 
 // ******************************** on document ready **************************************//
@@ -863,13 +918,13 @@ $(document).ready(function () {
   });
   // ******************************** predicate button click events ******************************//
   $('#p1').on('click', function () {
-    console.log('p1 clicked!!: ', $(this).html());
+    // console.log('p1 clicked!!: ', $(this).html());
     $('#p1stat').toggle();
   });
 
   // requires event delegation for dynamically added tags
   $('.second').on('click', '.p2', function () {
-    console.log('p2 clicked!!: ',$(this).html());
+    // console.log('p2 clicked!!: ',$(this).html());
     $(this).closest('tr').next().toggle();
   });
 
@@ -926,6 +981,7 @@ $(document).ready(function () {
   $("#nav_topalign").on('click', 'a', function () {
     var path;
     var kb_name = $(this).html();
+    
     if (kb_name === "Wikidata" && $("#tbl_wd_topalign tr").length <= 1){
       $.ajax({
         type: 'GET',
@@ -933,16 +989,13 @@ $(document).ready(function () {
         dataType: 'text',
         data: {'kbname': 'wikidata'},
         success: function(result, status){
-          
-          var data = $.csv.toObjects(result);
-          console.log(data);
-          data.forEach(function (item) {
-            $("#tbl_wd_topalign > tbody").append(get_table_data(item));
-          });
-          $('#tbl_wd_topalign').DataTable({
-            "order": [[2,"desc"]]
-          });
-          $('.dataTables_length').addClass('bs-select');
+          if ($.isEmptyObject(wd_labels)){
+            get_wd_labels();
+            fill_alignment_table(result, '#tbl_wd_topalign', true);
+          }
+          else {
+            fill_alignment_table(result, '#tbl_wd_topalign', true);
+          }          
         },
         error: function(){
           console.log("Couldn't load WD alignment csv file :(");
@@ -957,14 +1010,7 @@ $(document).ready(function () {
         dataType: 'text',
         data: {'kbname': 'dbpedia_raw'},
         success: function(result, status){
-          var data = $.csv.toObjects(result);
-          data.forEach(function (item) {
-            $("#tbl_dbpr_topalign > tbody").append(get_table_data(item));
-          });
-          $('#tbl_dbpr_topalign').DataTable({
-            "order": [[2,"desc"]]
-          });
-          $('.dataTables_length').addClass('bs-select');
+          fill_alignment_table(result, '#tbl_dbpr_topalign', false);
         },
         error: function(){
           console.log("Couldn't load DBPr alignment csv file :(");
@@ -979,14 +1025,7 @@ $(document).ready(function () {
         dataType: 'text',
         data: {'kbname': 'dbpedia_mapped'},
         success: function(result, status){
-          var data = $.csv.toObjects(result);
-          data.forEach(function (item) {
-            $("#tbl_dbpm_topalign > tbody").append(get_table_data(item));
-          });
-          $('#tbl_dbpm_topalign').DataTable({
-            "order": [[2,"desc"]]
-          });
-          $('.dataTables_length').addClass('bs-select');
+          fill_alignment_table(result, '#tbl_dbpm_topalign', false);
         },
         error: function(){
           console.log("Couldn't load DBPm alignment csv file :(");

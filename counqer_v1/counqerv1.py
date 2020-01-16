@@ -12,6 +12,14 @@ app = Flask(__name__)
 cors = CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
 
+@app.route('/getwdlabels', methods=['GET', 'POST'])
+@cross_origin()
+def get_wdlabels():
+	try:
+		return send_from_directory('static/data/pred_labels', filename='wikidata_labels.csv', as_attachment=True, cache_timeout=0)
+	except FileNotFoundError:
+		abort(404)
+
 @app.route('/getalignments', methods=['GET','POST'])
 @cross_origin()
 def get_alignments():

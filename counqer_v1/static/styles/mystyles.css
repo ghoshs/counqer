@@ -117,10 +117,14 @@ table.first, table.second {
 }
 
 table.first td, table.second td {
-  width: 33%;
+  width: 32%;
   vertical-align: middle !important;
   padding-left: 0px;
   padding-right: 0px;
+}
+
+table.first tr.triple td:last-child, table.second tr.triple td:last-child {
+  width: 4% !important;
 }
 
 table.first .btn, table.second .btn {

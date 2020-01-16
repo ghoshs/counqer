@@ -12,7 +12,6 @@ case VI : <?s1,p1,o1>; p1 = inverse EP; related predicates are CP
 '''
 
 import sys
-## server edits ##
 sys.path.append('/var/www/counqer_v1')
 
 import os
@@ -134,15 +133,24 @@ def load_wd_plabels():
 			predicate = row[0].split('/')[-1]
 			wd_labels[predicate] = predicate + ': ' + row[1].lower()
 
+def beautify_wd_query(url):
+	# split at json options
+	url = re.split('(sparql\?)|(query=)|(results=json)|(output=json)|(format=json)|(http=)|(https=)',url)
+	url = [x for x in url if x is not None and x.startswith(('https://query.wikidata.org', 'SELECT'))]
+	# create url similar to wikidata query page
+	url = '#'.join(url)
+	url = url.replace('+',' ')
+	if url.endswith('&'):
+		url = url[0:-1]
+	return url
+
 def wd_sparql(query, pred_list):
 	response = []
 	sparql = SPARQLWrapper("https://query.wikidata.org/sparql", agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11")
 	sparql.setReturnFormat(JSON)
 	## server edits
 	# param = sparql.addParameter('http', http_proxy)
-	# # print('set param', param)
 	# param = sparql.addParameter('https', https_proxy)
-	# # print('set param', param)
 	wd_prefix = 'http://wikidata.org/entity/'
 	# idx = 0
 	flag_query1 = 0
@@ -160,6 +168,7 @@ def wd_sparql(query, pred_list):
 			o2val = []
 			s1val = []
 			s2val = []
+			queryurl = beautify_wd_query(sparql.query().response.geturl())
 			for value in results["results"]["bindings"]:
 				if 'o1Label' in value:
 					o1val.append(value['o1']['value'] + '/' + value['o1Label']['value'])
@@ -170,24 +179,25 @@ def wd_sparql(query, pred_list):
 				if 's2Label' in value:
 					s2val.append(value['s2']['value'] + '/' + value['s2Label']['value'])
 			if len(o1val) > 0:	
-				response.append({'o1Label': o1val})
+				response.append({'o1Label': o1val, 'q': queryurl})
 				# print('o1label: ', len(o1val), flag_query1)
 			elif len(s1val) > 0:
-				response.append({'s1Label': s1val})
+				response.append({'s1Label': s1val, 'q': queryurl})
 
 			# include empty results also
 			# if len(o2val) > 0:
 			if len(pred_list[idx]) > 0:
 				if 'o2' in query_vars:
-					response.append({'o2Label': o2val, 'p2': wd_labels[pred_list[idx].split('_inv')[0]]})
+					response.append({'o2Label': o2val, 'p2': wd_labels[pred_list[idx].split('_inv')[0]], 'q': queryurl})
 				elif 's2' in query_vars:
-					response.append({'s2Label': s2val, 'p2': wd_labels[pred_list[idx].split('_inv')[0]]})
+					response.append({'s2Label': s2val, 'p2': wd_labels[pred_list[idx].split('_inv')[0]], 'q': queryurl})
+
 			# if main query has empty results then related queries not required
-			if ('s1' in query_vars or 'o1' in query_vars) and len(o1val) == 0 and len(s1val) == 0:
-				# remove nay related query result
-				if len(response) > 0:
-					response = []
-				break		
+			# if ('s1' in query_vars or 'o1' in query_vars) and len(o1val) == 0 and len(s1val) == 0:
+			# 	# remove nay related query result
+			# 	if len(response) > 0:
+			# 		response = []
+			# 	break		
 				
 	if len(response) > 0:
 		return(response)
@@ -392,6 +402,16 @@ def get_dbp_plabel(pred):
 
 	return namespace+p_label
 
+def beautify_dbp_query(url):
+	url = re.split('(SELECT)|(results=json)|(output=json)|(format=json)|(http=)|(https=)', url)
+	print(url)
+	url = [x for x in url if x is not None and (x.startswith('SELECT') or x.endswith(('limit+1000', 'limit+1000&')))]
+	url = 'http://dbpedia.org/snorql/?query='+''.join(url)
+	if url.endswith('&'):
+		url = url[0:-1]
+	print(url)
+	return url
+
 def dbp_sparql(query, pred_list):
 	response = []
 	sparql = SPARQLWrapper("http://dbpedia.org/sparql")
@@ -426,6 +446,9 @@ PREFIX dbp: <http://dbpedia.org/property/>
 			o2val = []
 			s1val = []
 			s2val = []
+			queryurl = beautify_dbp_query(sparql.query().response.geturl())
+			print('url: ', queryurl)
+
 			for value in results["results"]["bindings"]:
 				if 'o1' in value:
 					o1val.append(value['o1']['value'])
@@ -436,23 +459,23 @@ PREFIX dbp: <http://dbpedia.org/property/>
 				if 's2' in value:
 					s2val.append(value['s2']['value'])
 			if len(o1val) > 0:
-				response.append({'o1Label': o1val})
+				response.append({'o1Label': o1val, 'q': queryurl})
 			elif len(s1val) > 0:
-				response.append({'s1Label': s1val})
+				response.append({'s1Label': s1val, 'q': queryurl})
 			# # Include empty responses also for related predicate (pred_list[idx] is non-empty) queries
 			if len(pred_list[idx]) > 0:
 				p_label = get_dbp_plabel(pred_list[idx])
 								
 				if 'o2' in query_vars:
-					response.append({'o2Label': o2val, 'p2': p_label})
+					response.append({'o2Label': o2val, 'p2': p_label, 'q': queryurl})
 				elif 's2' in query_vars:
-					response.append({'s2Label': s2val, 'p2': p_label})
+					response.append({'s2Label': s2val, 'p2': p_label, 'q': queryurl})
 			# if main query has empty results then related queries not required
-			if ('s1' in query_vars or 'o1' in query_vars) and len(o1val) == 0 and len(s1val) == 0:
-				# remove nay related query result
-				if len(response) > 0:
-					response = []
-				break
+			# if ('s1' in query_vars or 'o1' in query_vars) and len(o1val) == 0 and len(s1val) == 0:
+			# 	# remove nay related query result
+			# 	if len(response) > 0:
+			# 		response = []
+			# 	break
 
 	if len(response) > 0:
 		return(response)
