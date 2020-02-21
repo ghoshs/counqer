@@ -20,6 +20,11 @@ The app runs on port 5000 which can be changed by editing the port number in the
    	2. `counqer_v1/static/scripts/myscript.js`
    	3. `counqer_v2/free_text_search.py`
    	4. `counqer_v2/static/scripts/myscript.js`
+   	5. `counqer_v2/bing_search/bing_search.py`
+
+3. SpaCy models
+   
+   This system uses `en_core_web_md` model. For faster output at cost of accuracy `en_core_web_sm` may also be used. Models specified in function `text_tags` in file `free_text_search.py` for query and result.
 
 ### SPO query and top KB alignments
 Based on results from CounQER v1 on identifying set predicates from KB and aligning related set-predicates.
@@ -46,6 +51,23 @@ Location: ./my_entity_matcher/
 
 `my_entity_matcher.py` - uses SpaCy to annotate query and search result snippets. Additional functionality to link similar entities in the text snippets to the queried entity. 
 
+## Cardinal Value Processor
+
+Location: ./cardinal_processor/
+
+`cardinal_processor.py` - contains functions to
+   a. return all cardinal integers from text
+   b. return cardinal integers with following noun phrase if present
+   c. return median variations for a list of cardinal integers
+
+`myw2n.py` - modified word to number python package to convert number in word to integer format. 
+
+## Text preprocessor
+
+Location: ./text_preprocessor/
+
+`text_preprocessor.py` - has function to handle text separator combinations not supported by SpaCy.
+
 
 #### Debugging
 
@@ -54,3 +76,7 @@ Location: ./my_entity_matcher/
 Check Apache lang configuration. [Is LC_ALL set to utf-8?](https://itekblog.com/ascii-codec-cant-encode-characters-in-position/)
 
 2. counqer.mpi-inf.mpg.de is the main landing page. The html script is at /var/www/html/index.html
+
+3. Modify w2n.py into cardinal_processing/myw2n.py
+	a. Able to convert `144 thousand` to integer.
+	b. Able to convert `60,000` to integer. 
