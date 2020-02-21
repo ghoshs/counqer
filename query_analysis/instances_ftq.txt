@@ -1,0 +1,16 @@
+Instances <NP>, <IN>, <NNP>
+5
+titles, by, Roger Federer
+children, of, James Garfield
+languages, in, India
+employees, at, Microsoft
+employees, at, Diffbot
+employees, at, Allen Institute for AI
+faculty members, of, University of North Dakota
+faculty members, of, UCSD
+songs, by, Hollywood Undead
+characters, in, Lord of the Rings
+subway stations, in, New York
+subway stations, in, Berlin
+ice lines, in, Germany
+hospitals, in, tennessee

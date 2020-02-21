@@ -1,0 +1,17 @@
+Query,answer_gold,5_median,5_head_noun,10_median,10_head_noun,50_median,50_head_noun,Google,Bing,Comments
+How many titles does Roger Federer have?,111,4,32,6,19,6,16,8,-,
+titles by Roger Federer,111,12,58,16,20,7,18,-,-,
+Roger Federer titles,111,12,58,16,101,6,10,-,-,
+Number of titles by Roger Federer,111,16,100,16,100,10,20,1000(highlight),-,
+How many children does James Garfield have?,7,5,6,6,6,5,5,8,7(enums),position weighted is better
+children of James Garfield,7,5,7,5,7,5,5,7(enums),7(enums),position weighted is better
+James Garfield children,7,5,7,5,7,5,7,7(enums),7(enums),position weighted is better
+Number of children of James Garfield,7,5,5,5,5,5,5,8,-,
+How many languages does India have?,121,22,22,71,22,64,185,2,780(highlight),
+languages in India,121,12,23,22,22,29,29,2(enum),-,
+India languages,121,18,23,17,20,30,24,2(enum),-,
+Number of languages in India,121,2,2,19,16,121,121,2,-,
+How many employees does Microsoft have?,144000,111500,1007200,111500,1007200,71,237,148465,72000(highlight),position weighted is better
+employees in Microsoft,144000,102500,144000,9200,18000,365,22000,-,61000(highlight),position weighted is better
+Microsoft employees,144000,102500,144000,30550,144000,365,1987,58(enum),-,position weighted is better
+Number of employees in Microsoft,144000,98500,144000,61000,144000,137,47,148465,-,position weighted is better
