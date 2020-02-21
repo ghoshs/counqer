@@ -57,28 +57,63 @@
 				<span class="glyphicon glyphicon-search" style="font-size: 2em"></span>
 			</button>
 		</div>
-		<div class="col-sm-3">
-			<!-- <div class="btn-grp">
-					<button type="button" class="btn btn-outline-info" id="ftWD-btn">
-						<img src="{{ url_for('static', filename='images/wikidataLogo.png') }}" width="30" title="Wikidata">
-					</button>
-					<button type="button" class="btn btn-link" id="ftDBPr-btn">
-						<img src="{{ url_for('static', filename='images/DBpediarawLogo.png') }}" width="30" title="DBP: raw KB">
-					</button>
-					<button type="button" class="btn btn-link" id="ftDBPm-btn">
-						<img src="{{ url_for('static', filename='images/DBpediamapLogo.png') }}" width="30" title="DBP: mapping KB">
-					</button>
-			</div> -->
-			<label class="radio-inline">
-				<input type="radio" name="ftq_ents" id="ftq_all_ents" checked value='All entities'> All entities
-			</label>
-			<label class="radio-inline">
-				<input type="radio" name="ftq_ents" id="ftq_matched_ents" value='Matched entities'> Matched entities
-			</label>
+		<div class="col-sm-1" id="ftqQuerySettingIcon">
+			<button type="button" class="btn btn-link">
+				<span class="glyphicon glyphicon-cog" style="font-size: 2em"></span>
+			</button>
 		</div>
 	</div>
-	<div class="row vertical-align no-gutter">
-		<div class="col-sm-12" id="displacy"></div>
+	<div id="displayalert" class="row vertical-align" role="alert" style="display: none" data-hide="displayalert">
+		<div class="alert alert-info alert-dismissible col-sm-8" style="margin-bottom: 0px">
+		 We are waiting for your input.
+		</div>
+	</div>	
+	<div class="row vertical-align no-gutter" id="ftqQuerySetting" style="display: none;">
+		<div class="col-sm-2">
+			<select name="entities" id="entities">
+				<option value="Matched entities">Matched entity</option>
+				<option value="All entities">All entities</option>
+			</select>	
+		</div>
+		<div class="col-sm-2">
+			<select name="snippets" id="snippets">
+				<option value="5">5 Snippets</option>
+				<option value="10">10</option>
+				<option value="50">50</option>
+			</select>	
+		</div>
+		<div class="col-sm-2">
+			<select name="querytype" id="querytype">
+				<option value="Original">Original Query</option>
+				<option value="Multiple">Multiple</option>
+			</select>	
+		</div>
+		<div class="col-sm-2">
+			<select name="answertype" id="answertype">
+				<option value="Original">Median</option>
+				<option value="Multiple">Weighted</option>
+			</select>	
+		</div>
+		<div class="col-sm-1" id="ftqClearSettings">
+			<button type="button">
+				<span>Clear</span>
+			</button>
+		</div>
+	</div>
+	<div id='ftqResults' style="display: none">
+		<div class="row vertical-align no-gutter" id="queryDisplacy">
+		</div>
+		<hr>
+		<div id="answer">
+			<div class="row vertical-align no-gutter">
+				<div class="col-sm-12 text-center"><strong>Median count values</strong></div>
+			</div>
+			<div class="row vertical-align no-gutter" id="answerMedian"></div>
+		</div>
+		<hr>
+		<div class="row vertical-align no-gutter">
+			<div class="col-sm-12" id="snippetDisplacy"></div>
+		</div>
 	</div>
 </div>
 

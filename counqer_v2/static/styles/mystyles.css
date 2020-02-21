@@ -85,86 +85,33 @@ nav, nav ul, nav a {
   flex-direction: row;
 }
 
-/*#home {
-  padding-top: 0px !important;
-}
-*/
-#home [class*='col-sm-9'] {
-  padding-right: 5px;
-}
-
-#examples {
-  padding-left: 10px;
-}
-
-#examples .btn {
-  padding-left: 10px;
-  padding-top: 2px;
-  padding-bottom: 2px;
-  font-size: 0.9em;
-}
-
 .no-gutter, .no-gutter [class*='col-'] {
     padding-right:0;
     padding-left:0;
     margin: 0px;
 }
 
-table.first, table.second {
-  border-collapse: separate !important;
-  border-radius: 1em;
-  border: 1px solid #ddd;
-}
-
-table.first td, table.second td {
-  width: 33%;
-  vertical-align: middle !important;
-  padding-left: 0px;
-  padding-right: 0px;
-}
-
-table.first .btn, table.second .btn {
-  padding: 8px;
-}
-
-table.searchable {
-  width: 100%;
-}
-
-table.searchable th, table.searchable td {
-  width: 33%;
-  vertical-align: middle !important;
-  padding-left: 0px;
-  padding-right: 0px;
-}
-
-.fullresult {
-  display: none;
-}
-
-.partial:hover .truncresult{
-  display: none;
-}
-
-.partial:hover .fullresult{
-  display: block;
-}
-
 hr {
   border-color: rgba(31,39,27,1);
 }
 
-table.dataTable thead .sorting:after,
-table.dataTable thead .sorting:before,
-table.dataTable thead .sorting_asc:after,
-table.dataTable thead .sorting_asc:before,
-table.dataTable thead .sorting_asc_disabled:after,
-table.dataTable thead .sorting_asc_disabled:before,
-table.dataTable thead .sorting_desc:after,
-table.dataTable thead .sorting_desc:before,
-table.dataTable thead .sorting_desc_disabled:after,
-table.dataTable thead .sorting_desc_disabled:before {
-bottom: .5em;
+select, #ftqClearSettings button {
+  border: 0px;
+  padding: 2px;
+  background: white;
+  color: rgb(89, 89, 89);
+}
+
+select option:hover, select option(:checked) {
+  background: rgb(242, 242, 242);
+}
+
+select option:not(:checked){
+  background: white;
+}
+
+#answer [class*='col-'] {
+  display: inline-block;
 }
 
 #displacy .query div{
