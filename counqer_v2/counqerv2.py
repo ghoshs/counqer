@@ -5,6 +5,7 @@ from free_text_search import text_tags
 import spacy
 from spacy.tokens import DocBin
 import json
+import pprint
 
 try: 
 	import urllib2 as myurllib
@@ -22,9 +23,10 @@ def free_text_query():
 	# query = json.loads(request.data.decode())['text']
 	# query parsing for ajax call
 	query = request.args.get('query')
+	snippets = request.args.get('snippets')
 	print("Query:: ", query)
-	response = text_tags(query) if len(query) > 0 else {}
-	print(response)
+	response = text_tags(query, snippets) if len(query) > 0 else {}
+	pprint.pprint(response, width=160)
 	return jsonify(response)
 
 @app.route('/')
