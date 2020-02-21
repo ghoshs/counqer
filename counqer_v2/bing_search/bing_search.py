@@ -1,18 +1,20 @@
 import requests
 
+# ## server edits - 2 ##
+
 # ## server edits ##
-# http_proxy = 'http://dmz-gw.mpi-klsb.mpg.de:3128'
-# https_proxy = 'https://dmz-gw.mpi-klsb.mpg.de:3128'
+http_proxy = 'http://dmz-gw.mpi-klsb.mpg.de:3128'
+https_proxy = 'https://dmz-gw.mpi-klsb.mpg.de:3128'
 
 def call_bing_api(query, count=10, subscription_key='2faf6a70e52a46318ec658b2a14c891c'):
 	# global num_api_calls
 	url = "https://api.cognitive.microsoft.com/bingcustomsearch/v7.0/search"
 	headers = {'Ocp-Apim-Subscription-Key': subscription_key}
 	params = {"q": query, "customconfig": "3701208300", "mkt": "en-US", "safesearch": "Moderate", "responseFilter": "-images,-videos", "count": count}
-	response = requests.get(url, headers=headers, params=params)
+	# response = requests.get(url, headers=headers, params=params)
 	
 	## server edits ##
-	# response = requests.get(url, headers=headers, params=params, proxies={'http': http_proxy, 'https': https_proxy})
+	response = requests.get(url, headers=headers, params=params, proxies={'http': http_proxy, 'https': https_proxy})
 	
 	response.raise_for_status()
 	# num_api_calls += 1
