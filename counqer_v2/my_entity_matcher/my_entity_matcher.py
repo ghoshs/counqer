@@ -33,9 +33,9 @@ class MYSpacyDoc():
 		flag = None
 		for ent in doc.ents:
 			
-			for q_ent in self.query_tags:
+			for q_ent in self.query_tags.ents:
 				sim = q_ent.similarity(ent)
-				if sim > 0.5:
+				if sim > 0.5 and ent.label_ == q_ent.label_:
 					if flag is not None and sim < flag:
 						continue
 					for idx in range(ent.start, ent.end):
