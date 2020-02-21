@@ -21,10 +21,10 @@ var ftresult = {};
 
 var wd_labels = {};
 
-var flaskurl = 'http://localhost:5000/';
+// var flaskurl = 'http://localhost:5000/';
 
 /** server edits**/
-// var flaskurl = 'https://counqer.mpi-inf.mpg.de/v1/'; 
+var flaskurl = 'https://counqer.mpi-inf.mpg.de/spo/'; 
 
 // function to process the json file returned and
 // populate the predicate options
@@ -150,18 +150,18 @@ function gettriples(response) {
 }
 
 // add results to related predicates
-function add_child (s2, p2, o2, q2, pstat, direction='inverse', type='predE') {
+function add_child (s2, p2, o2, q2, pstat, direction='', type='predE') {
   // console.log('add child ', s2, o2);
   if ($(".second").is(":hidden")) {
     $(".second").show();
   }
   text = '<tr class="triple">' +
          '<td class="s2 partial">' + insert_trunc_and_full_result(s2) + '</td>' +
-         '<td > <div class="col-12 btn btn-warning p2">' + p2 + '</div></td>' +
+         '<td > <div class="col-12 btn btn-warning p2">' + p2 + direction + '</div></td>' +
          '<td class="o2 partial">' + insert_trunc_and_full_result(o2) + '</td>' +
-         '<td class="q2"><a href="' + q2 + '" target="_blank"</a><span class="glyphicon glyphicon-search" style="font-size: 1em"></span></td>' +
+         '<td class="q2"><a href="' + q2 + '" target="_blank"><span class="glyphicon glyphicon-search" style="font-size: 1em"></span></a></td>' +
          '</tr>' +
-         '<tr class="p2stat" style="display: none">' + insert_pstats(pstat, direction, type) + '</tr>';
+         '<tr class="p2stat" style="display: none">' + insert_pstats(pstat, type) + '</tr>';
   $(".second > tbody").append(text);
   // console.log(text);
 }
@@ -262,7 +262,7 @@ function insert_trunc_and_full_result (entity) {
 }
 
 // function to add elements containing predicate statistics
-function insert_pstats (pstats, direction, type='predE') {
+function insert_pstats (pstats, type='predE') {
   // console.log(pstats);
   var val = '';
   if (type == 'predC')  {
@@ -390,23 +390,24 @@ function displayresponse (results) {
       $("#o1").html(insert_trunc_and_full_result(triple1['o1']));
       $("#q1 a").attr("href", triple1['q']);
       if (results['get'] == 'predE'){
-        $("#p1stat").html(insert_pstats(results['stats']['response'][triple1['p1']], 'direct', 'predC'));
+        $("#p1stat").html(insert_pstats(results['stats']['response'][triple1['p1']], 'predC'));
       }
       else {
-        $("#p1stat").html(insert_pstats(results['stats']['response'][triple1['p1']], 'direct'));
+        $("#p1stat").html(insert_pstats(results['stats']['response'][triple1['p1']]));
       }
       
     }
     else {
       $("#s1").html(insert_trunc_and_full_result(triple1['o1']));
-      $("#p1").html(triple1['p1']);
       $("#o1").html(insert_trunc_and_full_result(triple1['s1']));
       $("#q1 a").attr("href", triple1['q']);
       if (results['get'] == 'predE'){
-        $("#p1stat").html(insert_pstats(results['stats']['response_inv'][triple1['p1']], 'inverse', 'predC'));
+        $("#p1stat").html(insert_pstats(results['stats']['response_inv'][triple1['p1']], 'predC'));
+        $("#p1").html(triple1['p1']);
       }
       else {
-        $("#p1stat").html(insert_pstats(results['stats']['response_inv'][triple1['p1']], 'inverse'));
+        $("#p1stat").html(insert_pstats(results['stats']['response_inv'][triple1['p1']]));
+        $("#p1").html(triple1['p1']+'_inv');
       }
     }
     // console.log('s1.html: ', $("#s1").html());
@@ -441,7 +442,7 @@ function displayresponse (results) {
         // }
         // add related results 
         if ((results['get'] === 'predC' && triple1['s1']['full'].indexOf(';') === -1) || (results['get'] === 'predE')){
-          add_child(triple1['s1'], triple2['direct'][i]['p2'], triple2['direct'][i]['o2'], triple2['direct'][i]['q'], results['stats']['response'][triple2['direct'][i]['p2']], 'direct', results['get']);
+          add_child(triple1['s1'], triple2['direct'][i]['p2'], triple2['direct'][i]['o2'], triple2['direct'][i]['q'], results['stats']['response'][triple2['direct'][i]['p2']], '', results['get']);
         }
       }
     }
@@ -463,17 +464,17 @@ function displayresponse (results) {
           if ('s1' in results && triple1['s1']['full'].indexOf(';') === -1) {
             // add inv results if s1 is a single entity
               // console.log(triple1.s1.full, triple1.s1.full.indexOf(';'));
-              add_child(triple1['s1'], triple2['inverse'][i]['p2'], triple2['inverse'][i]['o2'], triple2['inverse'][i]['q'], results['stats']['response_inv'][triple2['inverse'][i]['p2']], 'inverse', 'predC');
+              add_child(triple1['s1'], triple2['inverse'][i]['p2'], triple2['inverse'][i]['o2'], triple2['inverse'][i]['q'], results['stats']['response_inv'][triple2['inverse'][i]['p2']], '', 'predC');
           }
           // queried object is the subject for related predicates
           else if (triple1['o1']['full'].indexOf(';') === -1){
             // add inv results if o1 is a single entity
               // console.log('inv: ', triple1.o1.full, triple1.o1.full.indexOf(';'));
-              add_child(triple1['o1'], triple2['inverse'][i]['p2'], triple2['inverse'][i]['o2'], triple2['inverse'][i]['q'], results['stats']['response_inv'][triple2['inverse'][i]['p2']], 'inverse', 'predC');
+              add_child(triple1['o1'], triple2['inverse'][i]['p2'], triple2['inverse'][i]['o2'], triple2['inverse'][i]['q'], results['stats']['response_inv'][triple2['inverse'][i]['p2']], '', 'predC');
           }
         }
         if (results['get'] === 'predE') {
-          add_child(triple2['inverse'][i]['s2'], triple2['inverse'][i]['p2'], triple1['s1'], triple2['inverse'][i]['q'], results['stats']['response_inv'][triple2['inverse'][i]['p2']]);
+          add_child(triple2['inverse'][i]['s2'], triple2['inverse'][i]['p2'], triple1['s1'], triple2['inverse'][i]['q'], results['stats']['response_inv'][triple2['inverse'][i]['p2']], '_inv');
         }
       }
     }
@@ -624,35 +625,89 @@ function get_wd_labels() {
 }
 
 // generate table entries for top alignments from each item
-function get_table_data(item, wd=false) {
+function get_table_data(item, kb='wd') {
   var asterix = '';
   if (parseFloat(item['score']).toFixed(3) > 0.9) {
     asterix = '*';
   }
+  var button_pre = '<a style="padding-left: 5px;" href="';
+  var button_post = '" target="_blank"><span class="glyphicon glyphicon-search" style="font-size: 1em"></span></a>';
+  var button_url = '', button = '';
+  var labelE, labelC, anchorE = '', anchorC = '';
+  var dbp = 'http://dbpedia.org/property/';
+  var dbo = 'http://dbpedia.org/ontology/';
+  if (kb == 'wd') {
+    labelE = item['predE'].split('/').pop();
+    labelC = item['predC'].split('/').pop();
   
-  var labelE = item['predE'].split('/').pop();
-  var labelC = item['predC'].split('/').pop();
-  if (wd == true) {
     if (labelE.split('_inv').shift() in wd_labels){
-      labelE = labelE + ': ' + wd_labels[labelE.split('_inv').shift()];  
+      if (labelE.indexOf('_inv') !== -1){
+        labelE = labelE.split('_inv').shift() + ': ' + wd_labels[labelE.split('_inv').shift()] + '_inv';  
+      }
+      else{
+        labelE = labelE.split('_inv').shift() + ': ' + wd_labels[labelE.split('_inv').shift()];  
+      }
     }
     if (labelC in wd_labels){
       labelC = labelC + ': ' + wd_labels[labelC];  
     }
+    if (labelE.indexOf('_inv') !== -1){
+      button_url = 'https://query.wikidata.org/#SELECT%20distinct%20%3Fs%20%3FsLabel%20WHERE%7BSERVICE%20wikibase%3Alabel%20%7B%20bd%3AserviceParam'+
+                   '%20wikibase%3Alanguage%20%22en%22.%20%7DOPTIONAL%20%7B%3Fo1%20wdt%3A'+ labelE.split(':').shift() +'%20%3Fs.%20%3Fs%20wdt%3A'+
+                   labelC.split(':').shift() +'%20%3Fo2.%7D%7D%20limit%2010';
+    }
+    else {
+      button_url = 'https://query.wikidata.org/#SELECT%20distinct%20%3Fs%20%3FsLabel%20WHERE%20%7BSERVICE%20wikibase%3Alabel%20%7B%20bd%3AserviceParam'+
+                 '%20wikibase%3Alanguage%20%22en%22.%20%7DOPTIONAL%20%7B%3Fs%20wdt%3A'+labelE.split(':').shift()+'%20%3Fo1%3Bwdt%3A'+
+                 labelC.split(':').shift()+'%20%3Fo2.%7D%7D%20limit%2010';  
+    }
+    anchorE = '<a href="' + item['predE'].split('_inv').shift() + '" target="_blank">' + labelE + '</a>';
+    anchorC = '<a href="' + item['predC'] + '" target="_blank">' + labelC + '</a>';
   }
+  else if ((kb == 'dbp') || (kb == 'dbo')) {
+    if (kb == 'dbp'){
+      labelE = item['predE'].split(dbp).pop();
+      labelC = item['predC'].split(dbp).pop();  
+    }
+    else{
+      labelE = item['predE'].split(dbo).pop();
+      labelC = item['predC'].split(dbo).pop();
+    }
+    if (labelE.indexOf('_inv') !== -1){
+      button_url = 'http://dbpedia.org/snorql/?query=SELECT+distinct+%3Fs+WHERE+%7B%0D%0A%3Fo1+%3C'+
+                   item['predE'].split('_inv').shift()+'%3E+%3Fs.%0D%0A%3Fs+%3C'+
+                   item['predC']+'%3E+%3Fo2.%0D%0A%7Dlimit+10';
+    }
+    else {
+      button_url = 'http://dbpedia.org/snorql/?query=SELECT+distinct+%3Fs+WHERE+%7B%0D%0A%3Fs+%3C'+
+                   item['predE']+'%3E+%3Fo1%3B%0D%0A%3C'+item['predC']+
+                   '%3E+%3Fo2.%0D%0A%7Dlimit+10'
+    }
+    anchorE = '<a href="' + item['predE'].split('_inv').shift() + '" target="_blank">' + labelE + '</a>';
+    anchorC = '<a href="' + item['predC'] + '" target="_blank">' + labelC + '</a>';
+  }
+  else {
+    labelE = item['predE'].split('/').pop().split('.').join('>');
+    labelC = item['predC'].split('/').pop().split('.').join('>');
+    button_pre = '';
+    button_post = '';
+    anchorE = '<a title="' + item['predE'].split('_inv').shift() + '">' + labelE + '</a>';
+    anchorC = '<a title="' + item['predC'] + '">' + labelC + '</a>';
+  }
+  button = button_pre + button_url + button_post;
   var htmldata = '<tr>' + 
-                 '<td><a href="' + item['predE'] + '" target="_blank">' + labelE + '</a></td>' +
-                 '<td><a href="' + item['predC'] + '" target="_blank">' + labelC + '</a></td>' +
-                 '<td>' + parseFloat(item['score']).toFixed(3) + asterix + '</td>' +
+                 '<td>' + anchorE + '</td>' +
+                 '<td>' + anchorC + '</td>' +
+                 '<td>' + parseFloat(item['score']).toFixed(3) + asterix  + button + '</td>' +
                  '</tr>';
   return htmldata;
 }
 
 // function to populate alignment results
-function fill_alignment_table(result, elementID, has_wd_label) {
+function fill_alignment_table(result, elementID, kb) {
   var data = $.csv.toObjects(result);
   data.forEach(function (item) {
-    $(elementID + " > tbody").append(get_table_data(item, has_wd_label));
+    $(elementID + " > tbody").append(get_table_data(item, kb));
   });
   $(elementID).DataTable({
     "order": [[2,"desc"]]
@@ -991,10 +1046,10 @@ $(document).ready(function () {
         success: function(result, status){
           if ($.isEmptyObject(wd_labels)){
             get_wd_labels();
-            fill_alignment_table(result, '#tbl_wd_topalign', true);
+            fill_alignment_table(result, '#tbl_wd_topalign', 'wd');
           }
           else {
-            fill_alignment_table(result, '#tbl_wd_topalign', true);
+            fill_alignment_table(result, '#tbl_wd_topalign', 'wd');
           }          
         },
         error: function(){
@@ -1010,7 +1065,7 @@ $(document).ready(function () {
         dataType: 'text',
         data: {'kbname': 'dbpedia_raw'},
         success: function(result, status){
-          fill_alignment_table(result, '#tbl_dbpr_topalign', false);
+          fill_alignment_table(result, '#tbl_dbpr_topalign', 'dbp');
         },
         error: function(){
           console.log("Couldn't load DBPr alignment csv file :(");
@@ -1025,7 +1080,22 @@ $(document).ready(function () {
         dataType: 'text',
         data: {'kbname': 'dbpedia_mapped'},
         success: function(result, status){
-          fill_alignment_table(result, '#tbl_dbpm_topalign', false);
+          fill_alignment_table(result, '#tbl_dbpm_topalign', 'dbo');
+        },
+        error: function(){
+          console.log("Couldn't load DBPm alignment csv file :(");
+        },
+        cache: false
+      });
+    }
+    else if (kb_name == 'Freebase' && $("#tbl_fb_topalign tr").length <= 1) {
+      $.ajax({
+        type: 'GET',
+        url : flaskurl+'getalignments',
+        dataType: 'text',
+        data: {'kbname': 'freebase'},
+        success: function(result, status){
+          fill_alignment_table(result, '#tbl_fb_topalign', 'fb');
         },
         error: function(){
           console.log("Couldn't load DBPm alignment csv file :(");

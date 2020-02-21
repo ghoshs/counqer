@@ -34,7 +34,7 @@
 	<ul id='navbar' class=navbar-nav>
 		<li><a class="active" href="#">SPO query</a></li>
 		<!-- <li><a href="#ftq">Free text query</a></li> -->
-		<li><a href="#topalign">Top alignments</a></li>
+		<li><a href="#topalign">Alignments</a></li>
 	</ul>
 </nav>
 <!-- <div class="jumbotron text-center" id="header">
@@ -61,8 +61,8 @@
 		</div>
 		<div class="col-sm-3">
 			<div class="input-group">
-				<span class="input-group-addon">Subject</span>
-				<input autoComplete="off" id="subject" type="text" class="form-control" name="subject" placeholder="Subject" list="subentities">
+				<span class="input-group-addon">Entity</span>
+				<input autoComplete="off" id="subject" type="text" class="form-control" name="subject" placeholder="Entity" list="subentities">
 				<datalist id="subentities"></datalist>
 			</div>
 		</div>
@@ -186,7 +186,7 @@
 					</button>
 				</div> -->
 				<div class="row no-gutter">
-					<sup id="fnIdeal">*We show some ideal aligments in KBs which are missed by CounQER.
+					<sup id="fnIdeal">*We show some ideal alignments in KBs which are missed by CounQER.
 						<!-- <a href="#divIdeal">↩</a> -->
 					</sup>
 				</div>
@@ -195,18 +195,18 @@
 </div>
 
 <div class="container body" id="topalign">
-	<h2>Top alignments from all KBs</h2>
+	<h2>Alignments from all KBs</h2>
 	<hr>
 	<ul class="nav nav-tabs" id="nav_topalign">
 		<li class="active"><a data-toggle="tab" href="#ow_topalign">Overview</a></li>
 		<li><a data-toggle="tab" href="#wd_topalign">Wikidata</a></li>
 		<li><a data-toggle="tab" href="#dbpr_topalign">DBpedia raw</a></li>
 		<li><a data-toggle="tab" href="#dbpm_topalign">DBpedia mapped</a></li>
-		<!-- <li><a data-toggle="tab" href="#menu3">Menu 3</a></li> -->
+		<li><a data-toggle="tab" href="#fb_topalign">Freebase</a></li>
 	</ul>
 	<div class="tab-content">
 		<div id="ow_topalign" class="tab-pane fade in active">
-			We show the top alignment pairs in each KB. 
+			We show the alignment pairs in each KB. 
 		</div>
 
 		<div id="wd_topalign" class="tab-pane fade">
@@ -254,9 +254,24 @@
 		      </table>
 		  </div>
 		</div>
+		<div id="fb_topalign" class="tab-pane fade">
+		  <h3>Freebase</h3>
+		  <div class="row no-gutter">      	
+		      <table class="searchable sortable table-striped table-bordered" id='tbl_fb_topalign'>
+		      	<thead>
+		      		<tr>
+		      			<th>Enumerating Predicate</th>
+		      			<th>Counting Predicate</th>
+		      			<th>Score</th>
+		      		</tr>
+		      	</thead>
+		      	<tbody></tbody>
+		      </table>
+		  </div>
+		</div>
 	</div>
 	<div class="row no-gutter">
-		<sup>We denote alignemnts missed by CounQER with a <strong>*</strong> by the scores.</sup>
+		<sup>We denote alignments missed by CounQER with a <strong>*</strong> by the scores.</sup>
 	</div>
 </div>
 

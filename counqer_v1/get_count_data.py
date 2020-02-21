@@ -4,8 +4,8 @@ case I  : <s1,p1,?o1>; p1 = counting predicate (CP): predC; related predicates a
 case II : <s1,p1,?o1>; p1 = CP; related predicates are inverse EP
 case III: <s1,p1,?o1>; p1 = direct EP; related predicates are CP
 case IV : <s1,p1,?o1>; p1 = inverse EP; related predicates are CP
-case V  : <?s1,p1,o1>; p1 = direct EP; related predicates are CP
-case VI : <?s1,p1,o1>; p1 = inverse EP; related predicates are CP
+XXX case V  : <?s1,p1,o1>; p1 = direct EP; related predicates are CP
+XXX case VI : <?s1,p1,o1>; p1 = inverse EP; related predicates are CP
 
 ## server edits  required: 4 ##
 
@@ -26,27 +26,27 @@ try:
 except ImportError:
 	import urllib.request as myurllib
 
-fname_score_wd = 'static/data/alignments/wikidata.csv'
-fname_score_dbpm = 'static/data/alignments/dbpedia_mapped.csv'
-fname_score_dbpr = 'static/data/alignments/dbpedia_raw.csv'
-fname_wd_prop_label = 'static/data/pred_labels/wikidata_labels.csv'
-fpath_pred_property = 'static/data/pred_property/'
-fpath_set_predicates = 'static/data/set_predicates/'
+# fname_score_wd = 'static/data/alignments/wikidata.csv'
+# fname_score_dbpm = 'static/data/alignments/dbpedia_mapped.csv'
+# fname_score_dbpr = 'static/data/alignments/dbpedia_raw.csv'
+# fname_wd_prop_label = 'static/data/pred_labels/wikidata_labels.csv'
+# fpath_pred_property = 'static/data/pred_property/'
+# fpath_set_predicates = 'static/data/set_predicates/'
 
 wd_labels = {}
 
 ## server edits ##
-# fname_score_wd = '/var/www/counqer_v1/static/data/alignments/wikidata.csv'
-# fname_score_dbpr = '/var/www/counqer_v1/static/data/alignments/dbpedia_raw.csv'
-# fname_score_dbpm = '/var/www/counqer_v1/static/data/alignments/dbpedia_mapped.csv'
-# fname_wd_prop_label = '/var/www/counqer_v1/static/data/pred_labels/wikidata_labels.csv'
-# fpath_pred_property = '/var/www/counqer_v1/static/data/pred_property/'
-# fpath_set_predicates = '/var/www/counqer_v1/static/data/set_predicates/'
+fname_score_wd = '/var/www/counqer_v1/static/data/alignments/wikidata.csv'
+fname_score_dbpr = '/var/www/counqer_v1/static/data/alignments/dbpedia_raw.csv'
+fname_score_dbpm = '/var/www/counqer_v1/static/data/alignments/dbpedia_mapped.csv'
+fname_wd_prop_label = '/var/www/counqer_v1/static/data/pred_labels/wikidata_labels.csv'
+fpath_pred_property = '/var/www/counqer_v1/static/data/pred_property/'
+fpath_set_predicates = '/var/www/counqer_v1/static/data/set_predicates/'
 
 # ## server edits ##
-# http_proxy = 'http://dmz-gw.mpi-klsb.mpg.de:3128'
-# https_proxy = 'https://dmz-gw.mpi-klsb.mpg.de:3128'
-# myurllib.install_opener(myurllib.build_opener(myurllib.ProxyHandler({'http': http_proxy, 'https': https_proxy})))
+http_proxy = 'http://dmz-gw.mpi-klsb.mpg.de:3128'
+https_proxy = 'https://dmz-gw.mpi-klsb.mpg.de:3128'
+myurllib.install_opener(myurllib.build_opener(myurllib.ProxyHandler({'http': http_proxy, 'https': https_proxy})))
 
 # read prednames and map to ID
 def get_predID(predicate):
@@ -73,8 +73,8 @@ def get_pred_stats(response, kb_name):
 	data_inv = pd.read_csv(fpath_pred_property+kb_name+'_inv.csv')
 
 	for item in response['response']:
-		# if 'error' in item:
-		# 	continue
+		if 'error' in item:
+			continue
 		if 'p2' in item:
 			lookup = item['p2']
 			lookuptype = 'p2'
@@ -93,8 +93,8 @@ def get_pred_stats(response, kb_name):
 			stats['response'][lookup] = json.loads(result)
 			
 	for item in response['response_inv']:
-		# if 'error' in item:
-		# 	continue
+		if 'error' in item:
+			continue
 		if 'p2' in item:
 			lookup = item['p2']
 			lookuptype = 'p2'
@@ -102,9 +102,11 @@ def get_pred_stats(response, kb_name):
 		else:
 			lookup = response['p1']
 			lookuptype = 'p1'
-			type = 'predE' if response['get'] == 'predC' else 'predC'
-		# if 'dbo:' in lookup or 'dbp:' in lookup:
-		# 	lookup = lookup.lower()
+			if 'get' in response:
+				type = 'predE' if response['get'] == 'predC' else 'predC'
+			else:
+				type = None
+		# check for inverse predicates
 		if type == 'predE' and lookup in set_predicates['predE_inv']:
 			pred = get_predID(lookup)
 			if 'dbp:' in lookup or 'dbo:' in lookup:
@@ -113,7 +115,7 @@ def get_pred_stats(response, kb_name):
 				result = data_inv.loc[data_inv['pred_inv'].str.endswith(pred)].to_json(orient='records')
 			# stats['response_inv'].append({lookuptype: lookup, 'stats': json.loads(result)})
 			stats['response_inv'][lookup]= json.loads(result)
-		elif type == 'predC' and lookup in set_predicates['predC']:
+		elif lookup in set_predicates['predE'] or lookup in set_predicates['predC']:
 			pred = get_predID(lookup)
 			if 'dbp:' in lookup or 'dbo:' in lookup:
 				result = data.loc[data['predicate'] == pred].to_json(orient='records')
@@ -149,8 +151,8 @@ def wd_sparql(query, pred_list):
 	sparql = SPARQLWrapper("https://query.wikidata.org/sparql", agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11")
 	sparql.setReturnFormat(JSON)
 	## server edits
-	# param = sparql.addParameter('http', http_proxy)
-	# param = sparql.addParameter('https', https_proxy)
+	param = sparql.addParameter('http', http_proxy)
+	param = sparql.addParameter('https', https_proxy)
 	wd_prefix = 'http://wikidata.org/entity/'
 	# idx = 0
 	flag_query1 = 0
@@ -191,13 +193,6 @@ def wd_sparql(query, pred_list):
 					response.append({'o2Label': o2val, 'p2': wd_labels[pred_list[idx].split('_inv')[0]], 'q': queryurl})
 				elif 's2' in query_vars:
 					response.append({'s2Label': s2val, 'p2': wd_labels[pred_list[idx].split('_inv')[0]], 'q': queryurl})
-
-			# if main query has empty results then related queries not required
-			# if ('s1' in query_vars or 'o1' in query_vars) and len(o1val) == 0 and len(s1val) == 0:
-			# 	# remove nay related query result
-			# 	if len(response) > 0:
-			# 		response = []
-			# 	break		
 				
 	if len(response) > 0:
 		return(response)
@@ -229,19 +224,21 @@ def query_wd(subID, predID, objID, df_score):
 				SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
 				OPTIONAL {wd:""" + subID.strip() + """ wdt:""" + predID.split(':')[0] + """ ?o1.}
 				} limit """ + responselimit
+		print('L161: ', q)
 		response['response'] = wd_sparql([q], [''])
 		if 'error' not in response['response']:
 			response['s1'] = subID
-		print('L161: ', q)
-
-		q = """SELECT ?s1 ?s1Label WHERE {
-				SERVICE wikibase:label { bd:serviceParam wikibase:language "en"property/doublesre. }
+		else:
+			q = """SELECT ?s1 ?s1Label WHERE {
+				SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
 				OPTIONAL {?s1 wdt:""" + predID.split(':')[0] + """ wd:""" + subID.strip() + """.}
 				} limit """ + responselimit
-		response['response_inv'] = wd_sparql([q], [''])
-		if 'error' not in response['response_inv']:
-			response['o1'] = subID
-		print('L170: ', q)
+			response['response_inv'] = wd_sparql([q], [''])
+			if 'error' not in response['response_inv']:
+				response['o1'] = subID
+				response['get'] = 'predC'
+			print('L170: ', q)
+		
 		# response['response_inv'] = {'error': 'Empty query'}
 		response['error'] = 'No co-occurring pair'
 		response['stats'] = get_pred_stats(response, 'wikidata')
@@ -292,50 +289,6 @@ def query_wd(subID, predID, objID, df_score):
 					query_pred_list.append(row.predC.split('/')[-1])
 			inv_query_pred_list = [inv_query_pred_list[idx] for idx, q in enumerate(inv_query) if q not in query]
 			inv_query = [q for q in inv_query if q not in query]
-		# else:
-		# 	# case VI
-		# 	if any('inv' in x for x in temp['predE'].unique().tolist()):
-		# 		inv_query.append("""SELECT ?s1 ?s1Label WHERE {
-		# 			SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
-		# 			OPTIONAL {wd:""" + objID.strip() + """ wdt:""" + predID.split(':')[0] + """ ?s1.}
-		# 			} limit """ + responselimit)
-		# 		inv_query_pred_list.append('')
-		# 	# case V
-		# 	if any('inv' not in x for x in temp['predE'].unique().tolist()):
-		# 		query.append("""SELECT ?s1 ?s1Label WHERE {
-		# 				SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
-		# 				OPTIONAL {?s1 wdt:""" + predID.split(':')[0] + """ wd:""" + objID.strip() + """.}
-		# 				} limit """ + responselimit)
-		# 		query_pred_list.append('')
-
-		# 	for row in temp_ranked.itertuples():
-		# 		# case VI related pred
-		# 		if 'inv' in row.predE:
-		# 			q = """SELECT ?o2 ?o2Label WHERE {
-		# 			SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
-		# 			OPTIONAL {wd:""" + objID.strip() + """ wdt:""" + predID.split(':')[0] + """ ?s1.
-		# 					  ?s1 wdt:""" + row.predC.split('/')[-1] + """ ?o2.}
-		# 			} limit """ + responselimit
-		# 			# make the queried object as subject
-		# 			# q = """SELECT ?o2 ?o2Label WHERE {
-		# 			# SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
-		# 			# OPTIONAL {wd:""" + objID.strip() + """ wdt:""" + row.predC.split(':')[0] + """ ?o2.}
-		# 			# } limit """ + responselimit 
-		# 			inv_query.append(q)
-		# 			inv_query_pred_list.append(row.predC.split('/')[-1])
-		# 		else:
-		# 			q = """SELECT ?o2 ?o2Label WHERE {
-		# 			SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
-		# 			OPTIONAL {?s1 wdt:""" + predID.split(':')[0] + """ wd:""" + objID.strip() + """.
-		# 					  ?s1 wdt:""" + row.predC.split('/')[-1] + """ ?o2.}
-		# 			} limit """ + responselimit
-		# 			# make the queried object as subject
-		# 			# q = """SELECT ?o2 ?o2Label WHERE {
-		# 			# SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
-		# 			# OPTIONAL {wd:""" + objID.strip() + """ wdt:""" + row.predC.split(':')[0] + """ ?o2.}
-		# 			# } limit """ + responselimit
-		# 			query.append(q)
-		# 			query_pred_list.append(row.predC.split('/')[-1])
 
 	elif 'predE' in get and len(objID) == 0:
 		temp = df_score.loc[df_score['predC'].str.endswith(pred)]
@@ -417,8 +370,8 @@ def dbp_sparql(query, pred_list):
 	sparql = SPARQLWrapper("http://dbpedia.org/sparql")
 	sparql.setReturnFormat(JSON)
 	## server edits
-	# sparql.addParameter('http', http_proxy)
-	# sparql.addParameter('https', https_proxy)
+	sparql.addParameter('http', http_proxy)
+	sparql.addParameter('https', https_proxy)
 	prefixes = """PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -517,19 +470,21 @@ def query_dbp(subID, predID, objID, df_score):
 		q = """SELECT ?o1 WHERE {
 				OPTIONAL {<http://dbpedia.org/resource/""" + subID.strip() + """> <""" + pred_query + """> ?o1.}
 			} limit """ + responselimit
+		print('L441: ', q)
 		response['response'] = dbp_sparql([q], [''])
 		if 'error' not in response['response']:
 			response['s1'] = subID
-		print('L441: ', q)
-		
-		q = """SELECT ?s1 WHERE {
-				OPTIONAL {?s1 <""" + pred_query + """> <http://dbpedia.org/resource/""" + subID.strip() + """>.}
-			} limit """ + responselimit
-		response['response_inv'] = dbp_sparql([q], [''])
-		if 'error' not in response['response_inv']:
-			response['o1'] = subID
-		print('L449: ', q)
+		else:
+			q = """SELECT ?s1 WHERE {
+					OPTIONAL {?s1 <""" + pred_query + """> <http://dbpedia.org/resource/""" + subID.strip() + """>.}
+				} limit """ + responselimit
+			response['response_inv'] = dbp_sparql([q], [''])
+			if 'error' not in response['response_inv']:
+				response['o1'] = subID
+				response['get'] = 'predC'
+			print('L449: ', q)
 		response['error'] = 'No co-occurring pair'
+		response['stats'] = get_pred_stats(response, 'dbpedia_mapped') if 'dbo' in prefix else get_pred_stats(response, 'dbpedia_raw')
 		return response
 	print('L452: ', get, pred)
 	# If the queries predicate is enumerable
@@ -577,46 +532,7 @@ def query_dbp(subID, predID, objID, df_score):
 					query_pred_list.append(row.predC)
 			inv_query_pred_list = [inv_query_pred_list[idx] for idx, q in enumerate(inv_query) if q not in query]
 			inv_query = [q for q in inv_query if q not in query]
-		# For a <?,P,O> query
-		# else:
-		# 	# case VI
-		# 	if any('inv' in x for x in temp['predE'].unique().tolist()):
-		# 		inv_query.append("""SELECT ?s1 WHERE {
-		# 			OPTIONAL {<http://dbpedia.org/resource/""" + objID.strip() + """> <""" + pred_query + """> ?s1.}
-		# 		} limit """ + responselimit)
-		# 		inv_query_pred_list.append('')
-		# 	# case V
-		# 	if any('inv' not in x for x in temp['predE'].unique().tolist()):
-		# 		query.append("""SELECT ?s1 WHERE {
-		# 			OPTIONAL {?s1 <""" + pred_query + """> <http://dbpedia.org/resource/""" + objID.strip() + """>.}
-		# 		} limit """ + responselimit)
-		# 		query_pred_list.append('')
 
-		# 	for row in temp_ranked.itertuples():
-		# 		# case VI related pred
-		# 		if 'inv' in row.predE:
-		# 			q = """SELECT ?o2 WHERE {
-		# 				OPTIONAL {<http://dbpedia.org/resource/""" + objID.strip() + """> <""" + pred_query + """> ?s1.
-		# 				?s1 <""" + row.predC + """> ?o2.}
-		# 			} limit """ + responselimit
-		# 			# make the queried object as subject
-		# 			# q = """SELECT ?o2 WHERE {
-		# 				# OPTIONAL {<http://dbpedia.org/resource/""" + objID.strip() + """> """ + row.predC + """ ?o2.}
-		# 			# } limit """ + responselimit
-		# 			inv_query.append(q)
-		# 			inv_query_pred_list.append(row.predC)
-		# 		# case V related pred
-		# 		else:
-		# 			q = """SELECT ?o2 WHERE {
-		# 				OPTIONAL {?s1 <""" + pred_query + """> <http://dbpedia.org/resource/""" + objID.strip() + """>.
-		# 				?s1 <""" + row.predC + """> ?o2.}
-		# 			} limit """ + responselimit
-		# 			# make the queried object as subject
-		# 			# q = """SELECT ?o2 WHERE {
-		# 				# OPTIONAL {<http://dbpedia.org/resource/""" + objID.strip() + """> """ + row.predC + """ ?o2.}
-		# 			# } limit """ + responselimit
-		# 			query.append(q)
-		# 			query_pred_list.append(row.predC)
 	# If queries predicate is enumerating <S,predE,?o>
 	elif 'predE' in get and len(objID) == 0:
 		temp = df_score.loc[df_score['predC'] == pred]
