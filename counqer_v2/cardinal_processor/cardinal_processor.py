@@ -1,5 +1,6 @@
 import math
 import pandas as pd
+import pprint
 import cardinal_processor.myw2n as myw2n
 
 """
@@ -16,17 +17,26 @@ function which takes a list containing snippet tags [{'text':, 'ents':, 'has_ent
 and returns median stats on the integers.
 """
 def get_cardinal_stats(result):
+	# pprint.pprint(result)
 	cardinals = {}
 	val_dict = {'integers': [], 'pos': [], 'weight': []}
-	headn_val_dict = {'integers': [], 'pos': [], 'weight': []}
+	headn_val_dict = {'integers': [], 'pos': [], 'weight': [], 'sim': [], 'text': [], 'root': []}
+	# for each snippet
 	for idx, item in enumerate(result):
+		# create a list of integers in the snippet
 		val = [x for x in item['integers'] if len(x) > 0]
+		# append int list of current snippet to final list of integers with their position
 		val_dict['integers'] = val_dict['integers'] + val
 		val_dict['pos'] = val_dict['pos'] + [idx+1 for _ in range(0, len(val))]
 
-		val = [x['val'][0] for x in item['headn_match'] if len(x['val']) >0]
-		headn_val_dict['integers'] = headn_val_dict['integers'] + val
-		headn_val_dict['pos'] = headn_val_dict['pos'] + [idx+1 for _ in range(0, len(val))]
+		# create a list of integers in the snippet with matching headnouns
+		val = [x['val'] for x in item['headn_match'] if len(x['val']) > 0]
+		# append int list of current snippet to final list of integers with their position, head noun text and similarity
+		headn_val_dict['integers'] += val
+		headn_val_dict['pos'] += [idx+1 for _ in range(0, len(val))]
+		headn_val_dict['sim'] += [x['sim'] for x in item['headn_match'] if len(x['val']) > 0]
+		headn_val_dict['text'] += [x['text'] for x in item['headn_match'] if len(x['val']) > 0] 
+		headn_val_dict['root'] += [x['root'] for x in item['headn_match'] if len(x['val']) > 0] 
 
 	val_dict['weight'] = [1.0/x for x in val_dict['pos']]
 	headn_val_dict['weight'] = [1.0/x for x in headn_val_dict['pos']]
@@ -50,6 +60,9 @@ def get_cardinal_stats(result):
 		cardinals['integers_headn'] = [{'int': x, 'pos': headn_val_dict['pos'][idx]} for idx, x in enumerate(headn_val_dict['integers'])]
 		cardinals['pos_wgt_median_headn'] = str(df.integers[df['cumsum'] >= cutoff].iloc[0]) if len(df.integers[df['cumsum'] >= cutoff]) > 0 else ''
 		cardinals['median_headn'] = str(math.floor(df.integers.median()))
+		cardinals['sim_headn'] = headn_val_dict['sim']
+		cardinals['text_headn'] = headn_val_dict['text']
+		cardinals['root_headn'] = headn_val_dict['root']
 
 	return cardinals
 
@@ -67,6 +80,8 @@ def get_word_to_num(text_cardinals):
 		else:
 			val = str(myw2n.word_to_num(item['text']))
 			integers.append(val)
+	if len(integers) == 0:
+		integers = ['']
 	return integers
 
 """
@@ -88,7 +103,7 @@ def get_nummodifiers(doc, query_nounphrase=None):
 				else:
 					sim = 0
 				if sim > 0.5:
-					cardinal_list.append({'val': get_word_to_num([{'text': chunk.text}]), 'text': chunk.text, 'sim': str(sim)})
+					cardinal_list.append({'val': get_word_to_num([{'text': chunk.text}])[0], 'text': chunk.text, 'root': chunk.root.text, 'sim': str(sim)})
 	# text_nounphrase = [item for item in text_nounphrase if any(a['text'] in item['text'] for a in text_cardinals)]
 	
 	# cardinal_list = [{'val': get_word_to_num([item]), 'text': item['text']} for item in text_nounphrase]

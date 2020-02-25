@@ -30,6 +30,7 @@ def text_tags(query, max_results=10):
 
 	result['query_tags'] = query_tags.to_json()
 	result['results_tags'] = []
+	cardinals = []
 	text_cardinals = []
 	text_nounphrase = []
 	query_nounphrase = [chunk.root for chunk in query_tags.noun_chunks]
@@ -50,12 +51,12 @@ def text_tags(query, max_results=10):
 		doc_has_ent_match = str(doc._.get("has_ent_match"))
 		# print(doc_json)
 		result['results_tags'].append({'text': doc_json['text'], 'ents': doc_json['ents'], 
-									   'has_ent_match': doc_has_ent_match, 'ent_similarity': ent_match, 
-									   'integers': integers, 'headn_match': headn_match})
+									   'has_ent_match': doc_has_ent_match, 'ent_similarity': ent_match})
+		cardinals.append({'integers': integers, 'headn_match': headn_match})
 
 
 	# text_nounphrase = [item for item in text_nounphrase if any(a['text'] in item['text'] for a in text_cardinals)]
 	# print(text_nounphrase)
-	result['cardinal_stats'] = get_cardinal_stats(result['results_tags'])
+	result['cardinal_stats'] = get_cardinal_stats(cardinals)
 
 	return result
