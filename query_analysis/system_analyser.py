@@ -3,6 +3,7 @@ import csv
 from tqdm import tqdm
 import create_ftq_queries as cfq
 import argparse
+from collections import defaultdict
 
 # ## server edits - 2 ##
 
@@ -23,14 +24,23 @@ def get_median_results(cardinal_stats, val, rowbuffer):
 					 'median_headn': val+'_hnoun', 'pos_wgt_median_headn': val+'_hnoun_pos'}
 	for label in median_labels:
 		rowbuffer[median_labels[label]] = int(cardinal_stats[label]) if len(cardinal_stats[label]) > 0 else None
+
+	if 'integers' in cardinal_stats:
+		rowbuffer[val+'_int_list'] = '{'+','.join([item['int'] for item in cardinal_stats['integers']])+'}'
+	if 'text_headn' in cardinal_stats:
+		rowbuffer[val+'_hnoun_list'] = '{'+','.join([str(item['int'])+cardinal_stats['text_headn'][idx] for idx,item in enumerate(cardinal_stats['integers_headn'])]) + '}'
+		hnoun_freq_dict = defaultdict(int)
+		for hnoun in cardinal_stats['root_headn']:
+			hnoun_freq_dict[hnoun] += 1
+		rowbuffer[val+'_hnoun_freq'] = '{'+','.join([str(hnoun_freq_dict[hnoun])+': '+hnoun for hnoun in hnoun_freq_dict]) + '}'
 	return rowbuffer
 
 def analyser(queryfile='query_templates_ftq.txt', instancefile='instances_ftq.txt', outfile='query_analysis.csv'):
 	queries = cfq.create_ftq_queries(queryfile, instancefile)
 
-	header = ['Query', 'answer_gold', 'Google', 'Bing', '5_median', '5_median_pos', '5_hnoun', '5_hnoun_pos',
-				'10_median', '10_median_pos', '10_hnoun', '10_hnoun_pos',
-				'50_median', '50_median_pos', '50_hnoun', '50_hnoun_pos']
+	header = ['Query', 'answer_gold', 'Google', 'Bing', '5_median', '5_median_pos', '5_hnoun', '5_hnoun_pos', '5_int_list', '5_hnoun_list', '5_hnoun_freq',
+				'10_median', '10_median_pos', '10_hnoun', '10_hnoun_pos', '10_int_list', '10_hnoun_list', '10_hnoun_freq',
+				'50_median', '50_median_pos', '50_hnoun', '50_hnoun_pos', '50_int_list', '50_hnoun_list', '50_hnoun_freq']
 	create_outfile(outfile, header)
 
 	url = 'https://counqer.mpi-inf.mpg.de/ftq/ftresults'
