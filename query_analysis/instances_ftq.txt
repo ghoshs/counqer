@@ -1,9 +1,5 @@
 Instances <NP>, <IN>, <NNP>
-5
-titles, by, Roger Federer
-children, of, James Garfield
-languages, in, India
-employees, at, Microsoft
+1
 employees, at, Diffbot
 employees, at, Allen Institute for AI
 faculty members, of, University of North Dakota
@@ -14,3 +10,7 @@ subway stations, in, New York
 subway stations, in, Berlin
 ice lines, in, Germany
 hospitals, in, tennessee
+titles, by, Roger Federer
+children, of, James Garfield
+languages, in, India
+employees, at, Microsoft
