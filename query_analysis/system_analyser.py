@@ -28,7 +28,7 @@ def get_median_results(cardinal_stats, val, rowbuffer):
 	if 'integers' in cardinal_stats:
 		rowbuffer[val+'_int_list'] = '{'+','.join([item['int'] for item in cardinal_stats['integers']])+'}'
 	if 'text_headn' in cardinal_stats:
-		rowbuffer[val+'_hnoun_list'] = '{'+','.join([str(item['int'])+cardinal_stats['text_headn'][idx] for idx,item in enumerate(cardinal_stats['integers_headn'])]) + '}'
+		rowbuffer[val+'_hnoun_list'] = '{'+','.join([str(item['int'])+ ': ' +cardinal_stats['text_headn'][idx] for idx,item in enumerate(cardinal_stats['integers_headn'])]) + '}'
 		hnoun_freq_dict = defaultdict(int)
 		for hnoun in cardinal_stats['root_headn']:
 			hnoun_freq_dict[hnoun] += 1
