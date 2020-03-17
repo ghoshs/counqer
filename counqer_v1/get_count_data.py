@@ -31,7 +31,7 @@ except ImportError:
 # fname_score_dbpr = 'static/data/alignments/dbpedia_raw.csv'
 # fname_wd_prop_label = 'static/data/pred_labels/wikidata_labels.csv'
 # fpath_pred_property = 'static/data/pred_property/'
-# fpath_set_predicates = 'static/data/set_predicates/'
+# fpath_set_predicates = 'static/data/set_predicates_old/'
 
 wd_labels = {}
 
@@ -41,9 +41,9 @@ fname_score_dbpr = '/var/www/counqer_v1/static/data/alignments/dbpedia_raw.csv'
 fname_score_dbpm = '/var/www/counqer_v1/static/data/alignments/dbpedia_mapped.csv'
 fname_wd_prop_label = '/var/www/counqer_v1/static/data/pred_labels/wikidata_labels.csv'
 fpath_pred_property = '/var/www/counqer_v1/static/data/pred_property/'
-fpath_set_predicates = '/var/www/counqer_v1/static/data/set_predicates/'
+fpath_set_predicates = '/var/www/counqer_v1/static/data/set_predicates_old/'
 
-# ## server edits ##
+## server edits ##
 http_proxy = 'http://dmz-gw.mpi-klsb.mpg.de:3128'
 https_proxy = 'https://dmz-gw.mpi-klsb.mpg.de:3128'
 myurllib.install_opener(myurllib.build_opener(myurllib.ProxyHandler({'http': http_proxy, 'https': https_proxy})))
@@ -127,6 +127,42 @@ def get_pred_stats(response, kb_name):
 	print('pred stats: ', stats)
 	return stats
 
+def o1_and_o2_exist(response, response_inv):
+	if 'error' in response and 'error' in response_inv:
+		return False
+	elif 'error' in response:
+		# check if o1Label exists and at least one o2Label is non-empty 
+		no_o1Label = 'o1Label' not in response_inv[0]
+		idx = 0 if no_o1Label else 1
+		no_o2Label = not any([len(item['o2Label']) > 0 for item in response_inv[idx:]])
+		# print('1. ',no_o1Label, no_o2Label)
+		if no_o1Label and no_o2Label:
+			return False
+		else:
+			return True
+	elif 'error' in response_inv:
+		# check if o1Label exists and at east one o2Label in response
+		no_o1Label = 'o1Label' not in response[0]
+		idx = 0 if  no_o1Label else 1
+		no_o2Label = not any([len(item['o2Label']) > 0 for item in response[idx:]])
+		# print('2. ',no_o1Label, no_o2Label)
+		if no_o1Label and no_o2Label:
+			return False
+		else:
+			return True
+	elif 'o1Label' not in response[0] and 'o1Label' not in response_inv[0]:
+		# no o2Label in response
+		no_o2Label_r = not any([len(item['o2Label']) > 0 for item in response[0:]]) 
+		# no o2Label in response_inv
+		no_o2Label_inv = not any([len(item['o2Label']) > 0 for item in response_inv[0:]])
+		# print('3. ',no_o2Label_r, no_o2Label_inv)
+		if no_o2Label_r and no_o2Label_inv:
+			return False
+		else:
+			return True
+	else:
+		return True
+
 def load_wd_plabels():
 	global wd_labels
 	with open(fname_wd_prop_label) as fp:
@@ -199,10 +235,9 @@ def wd_sparql(query, pred_list):
 	else:
 		return({'error': 'Empty SPARQL result'})
 	
-def query_wd(subID, predID, objID, df_score):
+def query_wd(subID, predID, objID, df_score, inv):
 	temp = None
 	temp_ranked = None
-	inv = False
 	query = []
 	inv_query = []
 	query_pred_list = []
@@ -211,23 +246,26 @@ def query_wd(subID, predID, objID, df_score):
 	responselimit = "1000"
 
 	# pred = ':'.join([x.strip() for x in predID.split(':')])
-	pred = predID.split(":")[0]
-	# print(df_score['predE'].str.extract(r'(P\d+)', expand=False).unique())
+	pred = predID.split(":")[0]+inv
+	# print(df_score['predE'].str.split('/').str[-1].unique())
 
-	if pred in df_score['predE'].str.extract(r'(P\d+)', expand=False).unique():
+	# if pred in df_score['predE'].str.extract(r'(P\d+)', expand=False).unique():
+	if pred in df_score['predE'].str.split('/').str[-1].unique():
 		get = 'predC'
-	elif pred in df_score['predC'].str.extract(r'(P\d+)', expand=False).unique():
+	elif pred in df_score['predC'].str.split('/').str[-1].unique():
 		get = 'predE'
 	else:
 		response['p1'] = predID
-		q = """SELECT ?o1 ?o1Label WHERE {
+		if len(inv) == 0:
+			q = """SELECT ?o1 ?o1Label WHERE {
 				SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
 				OPTIONAL {wd:""" + subID.strip() + """ wdt:""" + predID.split(':')[0] + """ ?o1.}
 				} limit """ + responselimit
-		print('L161: ', q)
-		response['response'] = wd_sparql([q], [''])
-		if 'error' not in response['response']:
-			response['s1'] = subID
+			print('L161: ', q)
+			response['response'] = wd_sparql([q], [''])
+			if 'error' not in response['response']:
+				response['s1'] = subID
+			response['response_inv'] = {'error': 'Empty query'}
 		else:
 			q = """SELECT ?s1 ?s1Label WHERE {
 				SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
@@ -237,60 +275,64 @@ def query_wd(subID, predID, objID, df_score):
 			if 'error' not in response['response_inv']:
 				response['o1'] = subID
 				response['get'] = 'predC'
+			response['response'] = {'error': 'Empty query'}
+
 			print('L170: ', q)
 		
-		# response['response_inv'] = {'error': 'Empty query'}
 		response['error'] = 'No co-occurring pair'
 		response['stats'] = get_pred_stats(response, 'wikidata')
 		return response
 	print('L174: ', 'value get = ', get)
 	if 'predC' in get:
-		temp = df_score.loc[df_score['predE'].str.split('/').str[-1].str.split('_').str[0] == pred]
-		if len(temp['predE'].unique()) > 1:
-			inv = True
-		if inv:
-			temp_ranked = temp.sort_values(by='score', ascending=False).groupby('predE').head(5)
+		# temp = df_score.loc[df_score['predE'].str.split('/').str[-1].str.split('_').str[0] == pred]
+		temp = df_score.loc[df_score['predE'].str.split('/').str[-1] == pred]
+		# if len(temp['predE'].unique()) > 1:
+		# 	inv = True
+		# if inv:
+		# 	temp_ranked = temp.sort_values(by='score', ascending=False).groupby('predE').head(5)
 			
+		# else:
+		temp_ranked = temp.sort_values(by='score', ascending=False).head(n=5)
+
+		# if len(objID) == 0:
+		# case IV
+		if len(inv)>0:
+		 # any('inv' in x for x in temp['predE'].unique().tolist()):
+			inv_query.append("""SELECT ?o1 ?o1Label WHERE {
+				SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
+				OPTIONAL {?o1 wdt:""" + predID.split(':')[0] + """ wd:""" + subID.strip() + """.}
+				} limit """ + responselimit)
+			inv_query_pred_list.append('')
+		# case III
 		else:
-			temp_ranked = temp.sort_values(by='score', ascending=False).head(n=5)
+		 # any('inv' not in x for x in temp['predE'].unique().tolist()):
+			query.append("""SELECT ?o1 ?o1Label WHERE {
+				SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
+				OPTIONAL {wd:""" + subID.strip() + """ wdt:""" + predID.split(':')[0] + """ ?o1.}
+				} limit """ + responselimit)
+			query_pred_list.append('')
 
-		if len(objID) == 0:
-			# case IV
-			if any('inv' in x for x in temp['predE'].unique().tolist()):
-				inv_query.append("""SELECT ?o1 ?o1Label WHERE {
-					SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
-					OPTIONAL {?o1 wdt:""" + predID.split(':')[0] + """ wd:""" + subID.strip() + """.}
-					} limit """ + responselimit)
-				inv_query_pred_list.append('')
-			# case III
-			if any('inv' not in x for x in temp['predE'].unique().tolist()):
-				query.append("""SELECT ?o1 ?o1Label WHERE {
-					SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
-					OPTIONAL {wd:""" + subID.strip() + """ wdt:""" + predID.split(':')[0] + """ ?o1.}
-					} limit """ + responselimit)
-				query_pred_list.append('')
+		for row in temp_ranked.itertuples():
+			# case IV related pred
+			if 'inv' in row.predE:
+				q = """SELECT ?o2 ?o2Label WHERE {
+				SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
+				OPTIONAL {wd:""" + subID.strip() + """ wdt:""" + row.predC.split('/')[-1] + """ ?o2.}
+				} limit """ + responselimit
+				inv_query.append(q)
+				inv_query_pred_list.append(row.predC.split('/')[-1])
+			else:
+			# case IV related pred
+				q = """SELECT ?o2 ?o2Label WHERE {
+				SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
+				OPTIONAL {wd:""" + subID.strip() + """ wdt:""" + row.predC.split('/')[-1] + """ ?o2.}
+				} limit """ + responselimit
+				query.append(q)
+				query_pred_list.append(row.predC.split('/')[-1])
+		inv_query_pred_list = [inv_query_pred_list[idx] for idx, q in enumerate(inv_query) if q not in query]
+		inv_query = [q for q in inv_query if q not in query]
 
-			for row in temp_ranked.itertuples():
-				# case IV related pred
-				if 'inv' in row.predE:
-					q = """SELECT ?o2 ?o2Label WHERE {
-					SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
-					OPTIONAL {wd:""" + subID.strip() + """ wdt:""" + row.predC.split('/')[-1] + """ ?o2.}
-					} limit """ + responselimit
-					inv_query.append(q)
-					inv_query_pred_list.append(row.predC.split('/')[-1])
-				else:
-					# case IV related pred
-					q = """SELECT ?o2 ?o2Label WHERE {
-					SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
-					OPTIONAL {wd:""" + subID.strip() + """ wdt:""" + row.predC.split('/')[-1] + """ ?o2.}
-					} limit """ + responselimit
-					query.append(q)
-					query_pred_list.append(row.predC.split('/')[-1])
-			inv_query_pred_list = [inv_query_pred_list[idx] for idx, q in enumerate(inv_query) if q not in query]
-			inv_query = [q for q in inv_query if q not in query]
-
-	elif 'predE' in get and len(objID) == 0:
+	elif 'predE' in get:
 		temp = df_score.loc[df_score['predC'].str.endswith(pred)]
 		temp_ranked = temp.sort_values(by='score', ascending=False).head(n=5)
 		# case I/II
@@ -331,11 +373,12 @@ def query_wd(subID, predID, objID, df_score):
 		response['response_inv'] = {'error': 'Empty query'}
 	response['p1'] = predID
 	response['get'] = get
-	if len(objID) > 0:
-		response['o1'] = objID
-	else:
-		response['s1'] = subID
-
+	# if len(objID) > 0:
+	# 	response['o1'] = objID
+	# else:
+	response['s1'] = subID
+	if not o1_and_o2_exist(response['response'], response['response_inv']):
+		response['error'] = 'No instantiation'
 	# get pred stats before returning 
 	response['stats'] = get_pred_stats(response, 'wikidata')
 	return response
@@ -435,13 +478,12 @@ PREFIX dbp: <http://dbpedia.org/property/>
 	else:
 		return({'error': 'Empty SPARQL result'})
 
-def query_dbp(subID, predID, objID, df_score):
+def query_dbp(subID, predID, objID, df_score, inv):
 	temp_ranked = None
 	query = []
 	inv_query = []
 	query_pred_list = []
 	inv_query_pred_list = []
-	inv = False
 	response = {}
 	responselimit = "1000"
 	namespace = ''
@@ -457,23 +499,26 @@ def query_dbp(subID, predID, objID, df_score):
 		prefix = prefix[0:-1]+'/'
 		namespace = ''
 	pred_query = namespace + predID.split(' ')[1] + ''.join(pred)
-	pred = namespace + predID.split(' ')[1] + ''.join(pred)
+	pred = namespace + predID.split(' ')[1] + ''.join(pred) + inv
 	# pred = prefix + predID.split(' ')[1] + ''.join(pred)
 
-	if pred in df_score['predE'].unique() or pred+'_inv' in df_score['predE'].unique():
+	if pred in df_score['predE'].unique():
+	 # or pred+'_inv' in df_score['predE'].unique():
 		get = 'predC'
 	elif pred in df_score['predC'].unique():
 		get = 'predE'
 	else:
 		# when co-occuring pair does not exist return only direct result 
 		response['p1'] = predID
-		q = """SELECT ?o1 WHERE {
-				OPTIONAL {<http://dbpedia.org/resource/""" + subID.strip() + """> <""" + pred_query + """> ?o1.}
-			} limit """ + responselimit
-		print('L441: ', q)
-		response['response'] = dbp_sparql([q], [''])
-		if 'error' not in response['response']:
-			response['s1'] = subID
+		if len(inv) == 0:
+			q = """SELECT ?o1 WHERE {
+					OPTIONAL {<http://dbpedia.org/resource/""" + subID.strip() + """> <""" + pred_query + """> ?o1.}
+				} limit """ + responselimit
+			print('L441: ', q)
+			response['response'] = dbp_sparql([q], [''])
+			if 'error' not in response['response']:
+				response['s1'] = subID
+			response['response_inv'] = {'error': 'Empty query'}
 		else:
 			q = """SELECT ?s1 WHERE {
 					OPTIONAL {?s1 <""" + pred_query + """> <http://dbpedia.org/resource/""" + subID.strip() + """>.}
@@ -482,6 +527,7 @@ def query_dbp(subID, predID, objID, df_score):
 			if 'error' not in response['response_inv']:
 				response['o1'] = subID
 				response['get'] = 'predC'
+			response['response'] = {'error': 'Empty query'}
 			print('L449: ', q)
 		response['error'] = 'No co-occurring pair'
 		response['stats'] = get_pred_stats(response, 'dbpedia_mapped') if 'dbo' in prefix else get_pred_stats(response, 'dbpedia_raw')
@@ -489,52 +535,55 @@ def query_dbp(subID, predID, objID, df_score):
 	print('L452: ', get, pred)
 	# If the queries predicate is enumerable
 	if 'predC' in get:
-		temp = df_score.loc[df_score['predE'].str.split('_').str[0] == pred]
+		# temp = df_score.loc[df_score['predE'].str.split('_').str[0] == pred]
+		temp = df_score.loc[df_score['predE'] == pred]
 		# ranking pairs by pearson corr. If corr value does not exist arrange by PMI.
-		if len(temp['predE'].unique()) > 1:
-			inv = True
-		if inv:
-			temp_ranked = temp.sort_values(by='score', ascending=False).groupby('predE').head(5)
+		# if len(temp['predE'].unique()) > 1:
+		# 	inv = True
+		# if inv:
+		# 	temp_ranked = temp.sort_values(by='score', ascending=False).groupby('predE').head(5)
 			
-		else:
-			temp_ranked = temp.sort_values(by='score', ascending=False).head(n=5)
+		# else:
+		temp_ranked = temp.sort_values(by='score', ascending=False).head(n=5)
 			# if pd.isnull(temp_ranked['corr_pearson']).sum() > 0:
 				# temp_ranked = temp.sort_values(by='PMI', ascending=False).head(n=5)
 		# For a <S,P,?> query
-		if len(objID) == 0:
-			# case IV
-			if any('inv' in x for x in temp['predE'].unique().tolist()):
-				inv_query.append("""SELECT ?o1 WHERE {
-					OPTIONAL {?o1 <""" + pred_query + """> <http://dbpedia.org/resource/""" + subID.strip() + """>.}
-				} limit """ + responselimit)
-				inv_query_pred_list.append('')
-			# case III
-			if any('inv' not in x for x in temp['predE'].unique().tolist()):
-				query.append("""SELECT ?o1 WHERE {
-					OPTIONAL {<http://dbpedia.org/resource/""" + subID.strip() + """> <""" + pred_query + """> ?o1.}
-				} limit """ + responselimit)
-				query_pred_list.append('')
+	
+		# case IV
+		# if any('inv' in x for x in temp['predE'].unique().tolist()):
+		if len(inv) > 0:
+			inv_query.append("""SELECT ?o1 WHERE {
+				OPTIONAL {?o1 <""" + pred_query + """> <http://dbpedia.org/resource/""" + subID.strip() + """>.}
+			} limit """ + responselimit)
+			inv_query_pred_list.append('')
+		# case III
+		# if any('inv' not in x for x in temp['predE'].unique().tolist()):
+		else:
+			query.append("""SELECT ?o1 WHERE {
+				OPTIONAL {<http://dbpedia.org/resource/""" + subID.strip() + """> <""" + pred_query + """> ?o1.}
+			} limit """ + responselimit)
+			query_pred_list.append('')
 
-			for row in temp_ranked.itertuples():
-				# case IV related pred
-				if 'inv' in row.predE:
-					q = """SELECT ?o2 WHERE {
-						OPTIONAL {<http://dbpedia.org/resource/""" + subID.strip() + """> <""" + row.predC + """> ?o2.}
-					} limit """ + responselimit
-					inv_query.append(q)
-					inv_query_pred_list.append(row.predC)
-				# case III related pred
-				else:
-					q = """SELECT ?o2 WHERE {
-						OPTIONAL {<http://dbpedia.org/resource/""" + subID.strip() + """> <""" + row.predC + """> ?o2.}
-					} limit """ + responselimit
-					query.append(q)
-					query_pred_list.append(row.predC)
-			inv_query_pred_list = [inv_query_pred_list[idx] for idx, q in enumerate(inv_query) if q not in query]
-			inv_query = [q for q in inv_query if q not in query]
+		for row in temp_ranked.itertuples():
+			# case IV related pred
+			if 'inv' in row.predE:
+				q = """SELECT ?o2 WHERE {
+					OPTIONAL {<http://dbpedia.org/resource/""" + subID.strip() + """> <""" + row.predC + """> ?o2.}
+				} limit """ + responselimit
+				inv_query.append(q)
+				inv_query_pred_list.append(row.predC)
+			# # case III related pred
+			else:
+				q = """SELECT ?o2 WHERE {
+					OPTIONAL {<http://dbpedia.org/resource/""" + subID.strip() + """> <""" + row.predC + """> ?o2.}
+				} limit """ + responselimit
+				query.append(q)
+				query_pred_list.append(row.predC)
+		inv_query_pred_list = [inv_query_pred_list[idx] for idx, q in enumerate(inv_query) if q not in query]
+		inv_query = [q for q in inv_query if q not in query]
 
 	# If queries predicate is enumerating <S,predE,?o>
-	elif 'predE' in get and len(objID) == 0:
+	elif 'predE' in get:
 		temp = df_score.loc[df_score['predC'] == pred]
 		temp_ranked = temp.sort_values(by='score', ascending=False).head(n=5)
 		# if pd.isnull(temp_ranked['corr_pearson']).sum() > 0:
@@ -576,11 +625,9 @@ def query_dbp(subID, predID, objID, df_score):
 		response['response_inv'] = {'error': 'Empty query'}
 	response['p1'] = predID
 	response['get'] = get
-	if len(objID) > 0:
-		response['o1'] = objID
-	else:
-		response['s1'] = subID
-
+	response['s1'] = subID
+	if not o1_and_o2_exist(response['response'], response['response_inv']):
+		response['error'] = 'No instantiation'
 	# get pred stats before returning 
 	if 'dbo' in prefix:
 		response['stats'] = get_pred_stats(response, 'dbpedia_mapped')
@@ -591,6 +638,7 @@ def query_dbp(subID, predID, objID, df_score):
 # populate predC, predE predicate pair scores dpeending on KB
 def related_predicate(option, subID, predID, objID = None):
 	fname_score_by_E = ''
+	inv = ''
 	if option == 'wikidata':
 		fname_score = fname_score_wd
 	elif option == 'dbpedia_raw':
@@ -599,9 +647,12 @@ def related_predicate(option, subID, predID, objID = None):
 		fname_score = fname_score_dbpm
 
 	df_score = pd.read_csv(fname_score)
+	if predID.endswith('(inv)'):
+		predID = predID.split(' (inv)')[0]
+		inv = '_inv'
 	if option == 'wikidata':
 		if len(wd_labels) == 0:
 			load_wd_plabels()
-		return query_wd(subID, predID, objID, df_score)
+		return query_wd(subID, predID, objID, df_score, inv)
 	else:
-		return query_dbp(subID, predID, objID, df_score)
+		return query_dbp(subID, predID, objID, df_score, inv)

@@ -47,12 +47,12 @@ def get_predicate_list():
 def parse_request():
 	option = request.args.get('option')
 	subID = myurllib.unquote(request.args.get('subject'))
-	objID = myurllib.unquote(request.args.get('object'))
+	# objID = myurllib.unquote(request.args.get('object'))
 	predID = request.args.get('predicate')
-	print('counqerv1.py: L21: ', option, subID, predID, objID)
+	print('counqerv1.py: L21: ', option, subID, predID)
 	# print(option, subID, predID)
-	response = related_predicate(option, subID, predID, objID)
-	# response = related_predicate(option, subID, predID)
+	# response = related_predicate(option, subID, predID, objID)
+	response = related_predicate(option, subID, predID)
 	return jsonify(response)
 
 @app.route('/')

@@ -3,21 +3,12 @@ var subject = document.getElementById('subject');
 var subjectIDlist = {};
 var subjectID = '';
 
-var objentities = document.getElementById('objentities');
-var object = document.getElementById('object');
-var objectIDlist = {};
-var objectID = '';
-
-var predentities = document.getElementById('predentities');
-var predicate = document.getElementById('predicate');
+// var predicate = document.getElementById('predicate');
 var predicateIDlist = {};
 var predicateID = '';
 
 var option='wikidata';
 var predrequest = new XMLHttpRequest();
-
-var ftoption = 'wikidata';
-var ftresult = {};
 
 var wd_labels = {};
 
@@ -26,28 +17,51 @@ var wd_labels = {};
 /** server edits**/
 var flaskurl = 'https://counqer.mpi-inf.mpg.de/spo/'; 
 
+// display info messages on query click
+var waitmsg = "<div class='row alert alert-info alert-dismissible' style='margin-bottom: 0px'><strong>!!</strong> Hold on to your seats, CounQER is fetching the results!<button type='button' class='close' data-dismiss='alert' aria-label='Close'> <span aria-hidden='true'>&times;</span> </button></div>";
+var endmsg = "<div class='row alert alert-success alert-success' style='margin-bottom: 0px'><strong>!!</strong> Hope the results satisfy your curiosity!<button type='button' class='close' data-dismiss='alert' aria-label='Close'> <span aria-hidden='true'>&times;</span> </button></div>";
+var errmsg = "<div class='row alert alert-warning alert-warning' style='margin-bottom: 0px'><strong>!!</strong> You have counquered CounQER! We ran into problems while executing this query.<button type='button' class='close' data-dismiss='alert' aria-label='Close'> <span aria-hidden='true'>&times;</span> </button></div>";
+  
 // function to process the json file returned and
 // populate the predicate options
 function jsonCallback (result){
   var jsonOptions = result;
-  // var jsonOptions = result[option];
+  var predentities = document.getElementById('predentities');
+  var val_inv = '';
+
   Object.keys(result).forEach(function(itemtype) {
-    jsonOptions[itemtype].forEach(function(item) {
-      if (!(item in predicateIDlist)) {
-        var dropdown_option = document.createElement('option');
-        dropdown_option.value = item;
-        predentities.appendChild(dropdown_option);
-        predicateIDlist[item] = {value: item, type: itemtype};
-      }
+    if (itemtype.includes('_inv')){
+      val_inv = ' (inv)';
+      // html_inv = '&#x207b &sup1';
+    }
+    else{
+      val_inv = ''; 
+    }
+    Object.keys(jsonOptions[itemtype]).forEach(function (aligntype) {
+      jsonOptions[itemtype][aligntype].forEach(function (item) {
+        if (!(item+val_inv in predicateIDlist)) {
+          // var dropdown_option = document.createElement('option');
+          // dropdown_option.setAttribute('pred-key', item+val_inv);
+          // dropdown_option.value = item+val_inv;
+          // predentities.appendChild(dropdown_option);
+          var isaligned = false;
+          if (aligntype == 'aligned'){
+            isaligned = true;
+          }
+          predicateIDlist[item+val_inv] = {type: itemtype, instances: '0', aligned: isaligned};
+        }  
+      });
     });
   });
+  sortedPredAutocomplete();
   // console.log('in jsoncallback, result: ',result);
   // console.log($("#predentities").children().length);
 }
 
 // function for displaying information messages
 function displayinfo(message) {
-  $('#displayalert').children().replaceWith(message);
+  // $('#displayalert').children().replaceWith(message);
+  $('#displayalert').append(message);
   $('#displayalert').show();
 }
 
@@ -62,46 +76,35 @@ function result_refresh () {
   $(".second > tbody").empty();
   $(".second > thead > tr > td").empty();
   $(".second").hide();
+  $("#displayalert").empty();
   // $(".second").html('<strong>Related Predicates</strong><hr>');
 }
 
 // function to refresh inputs
 function form_refresh () {
-  $('#objentities').empty();
+  // $('#objectities').empty();
   $('#subentities').empty();
   $('#predentities').empty();
   $('#subject').val('');
   $('#predicate').val('');
-  $('#object').val('');
-  $("#subject").prop('disabled', false);
-  $("#object").prop('disabled', false);
   subjectIDlist = {};
   predicateIDlist = {};
-  objectIDlist = {};
+  // objectIDlist = {};
   subjectID = '';
   predicateID = '';
-  objectID = '';
-
-  // if ($('#predentities').children().length == 0) {
-  //   if (option === 'wikidata') {
-
-  //   }
-  // }
-  var msg = "<div class='alert alert-info alert-dismissible' style='margin-bottom: 0px'>We are waiting for your input.</div>";
-  displayinfo(msg);
+  $("#subject").removeData();
 }
 
 // function to initiate ajax for loading predicate options 
 $.fn.predautocomplete = function () {
   var fname, path;
-  // console.log('option in predautocomp:::'+option);
   if (option === 'wikidata') {
     fname = 'wikidata.json';
   }
-  else if (option == 'dbpedia_raw') {
+  else if (option === 'dbpedia_raw') {
     fname = 'dbpedia_raw.json';
   }
-  else if (option == 'dbpedia_mapped') {
+  else if (option === 'dbpedia_mapped') {
     fname = 'dbpedia_mapped.json'
   }
   path = flaskurl + 'get_predicate_list';
@@ -121,7 +124,7 @@ $.fn.predautocomplete = function () {
 };
 
 // function to read returned triples
-function gettriples(response) {
+function gettriples(response, get) {
   var result = [];
   var len = response.length;
   var i;
@@ -135,10 +138,10 @@ function gettriples(response) {
     var temp = {};
     for (item in response[i]){
       if (item === 's2Label'){
-        temp['s2'] = join_entities(response[i][item]);
+        temp['s2'] = join_entities(response[i][item], 's2', get);
       }
       else if (item === 'o2Label') {
-        temp['o2'] = join_entities(response[i][item]);
+        temp['o2'] = join_entities(response[i][item], 'o2', get);
       }
       else {
         temp[item] = response[i][item];
@@ -155,19 +158,22 @@ function add_child (s2, p2, o2, q2, pstat, direction='', type='predE') {
   if ($(".second").is(":hidden")) {
     $(".second").show();
   }
+  if (direction === '_inv'){
+    direction = '<sup>-1</sup>';
+  }
   text = '<tr class="triple">' +
          '<td class="s2 partial">' + insert_trunc_and_full_result(s2) + '</td>' +
-         '<td > <div class="col-12 btn btn-warning p2">' + p2 + direction + '</div></td>' +
+         '<td > <div class="col-12 btn btn-warning p2" title="' + insert_pstats(pstat, type) + '">' + p2 + direction + '</div></td>' +
          '<td class="o2 partial">' + insert_trunc_and_full_result(o2) + '</td>' +
-         '<td class="q2"><a href="' + q2 + '" target="_blank"><span class="glyphicon glyphicon-search" style="font-size: 1em"></span></a></td>' +
-         '</tr>' +
-         '<tr class="p2stat" style="display: none">' + insert_pstats(pstat, type) + '</tr>';
+         '<td class="q2"><a href="' + q2 + '" target="_blank"><span class="glyphicon glyphicon-new-window" style="font-size: 1em"></span></a></td>' +
+         '</tr>' ;
+         // '<tr class="p2stat" style="display: none">' + insert_pstats(pstat, type) + '</tr>';
   $(".second > tbody").append(text);
   // console.log(text);
 }
 
 // join string array to comma separated string with total entity count
-function join_entities(entityarray){
+function join_entities(entityarray, theme='s1', get='predE'){
   var entities = [], entityLabel=[];
   var len = entityarray.length;
   var result = {'trunc': '', 'full': ''}, overflow_idx = -1, overflow_limit = 15;
@@ -218,8 +224,6 @@ function join_entities(entityarray){
         result['trunc'] += '; '
       }
     }
-    // result = entities.slice(0,overflow_idx+1).join('; ')
-    // result = result.slice(0,overflow_limit+1);
     if (entities.length == 1000){
       result['trunc'] = result['trunc'] + ' ... (>' + (entities.length).toString() + ' in total)';  
     }
@@ -246,10 +250,17 @@ function join_entities(entityarray){
   }
   // For empty results
   if (result['full'].length == 0) {
-    result['full'] = '-';
-    result['trunc'] = '-';
+    var emptyResult = '-';
+    if (theme === 's1' || theme === 's2' || (theme === 'o1' && get === 'predC') || (theme === 'o2' && get === 'predE')){
+      emptyResult = '(0 in total)';
+    }
+    else if ((theme === 'o1' && get === 'predE') || (theme === 'o2' && get === 'predC')){
+      emptyResult = '(no instantiations)'
+    }
+    result['full'] = emptyResult;
+    result['trunc'] = emptyResult;
   }
-  
+  // console.log(entityarray);
   // console.log(entityarray.length);
   // console.log(result);
   return(result);
@@ -272,7 +283,8 @@ function insert_pstats (pstats, type='predE') {
     else {
       val = '-'
     }
-    text = '<td colspan="4"> Average value: ' + val + ' </td>'
+    // text = '<td colspan="4"> Average value: ' + val + ' </td>'
+    text = 'Average value: ' + val;
   }
   else {
     if (pstats[0]['persub_avg_ne']) {
@@ -281,20 +293,21 @@ function insert_pstats (pstats, type='predE') {
     else {
       val = '-'
     }
-    text = '<td colspan="4"> Average entities per subject: ' + val + ' </td>'
+    // text = '<td colspan="4"> Average entities per subject: ' + val + ' </td>'
+    text = 'Average entities per subject: ' + val;
   }
   return(text);
 }
 
 // funtion to populate table after getting results
 function displayresponse (results) {
-  objectIDlist = subjectIDlist
+  objectIDlist = subjectIDlist;
   var triple1={'s1': {}, 'p1': '', 'o1': {}, 'q': ''};
   var triple2={'direct': [], 'inverse': []};
   console.log(results);
   if ('error' in results) {
     if (results.error === 'No co-occurring pair'){
-      var msg = "<div class='alert alert-warning alert-dismissible' style='margin-bottom: 0px'><strong>!!</strong> We could not retrieve any related results!<button type='button' class='close' aria-label='close'> <span aria-hidden='true'>&times;</span> </button></div>";
+      var msg = "<div class='row alert alert-warning alert-dismissible' style='margin-bottom: 0px'><strong>!!</strong> There exists no alignment for this predicate.<button type='button' class='close' data-dismiss='alert' aria-label='Close'> <span aria-hidden='true'>&times;</span> </button></div>";
       displayinfo(msg);
     }
   }
@@ -315,7 +328,7 @@ function displayresponse (results) {
     triple1['s1']['full'] = triple1['s1']['trunc'];
   }
   // if initial query was <?s, p, o>
-  if ('o1' in results) {
+  else if ('o1' in results) {
     if (option === 'wikidata') {
       triple1['o1']['trunc'] = Object.keys(objectIDlist).find(key => objectIDlist[key] === results.o1);
       triple1['o1']['trunc'] = link_prefix_wd + results.o1 + link_mid + triple1['o1']['trunc'] + link_suffix;
@@ -327,98 +340,101 @@ function displayresponse (results) {
     }
     triple1['o1']['full'] = triple1['o1']['trunc'];
   }
-  if ('error' in results['response'] && 'error' in results['response_inv']) {
-    var msg = "<div class='alert alert-warning alert-dismissible' style='margin-bottom: 0px'><strong>!!</strong> We could not retrieve any results!<button type='button' class='close' aria-label='close'> <span aria-hidden='true'>&times;</span> </button></div>";
+  if (('error' in results['response'] && 'error' in results['response_inv']) || ('error' in results && results.error === 'No instantiation')) {
+    var msg = "<div class='row alert alert-warning alert-dismissible' style='margin-bottom: 0px'><strong>!!</strong> There exist no instantiated facts on the queried and the related set predicates.<button type='button' class='close' data-dismiss='alert' aria-label='Close'> <span aria-hidden='true'>&times;</span> </button></div>";
     displayinfo(msg);
+    return;
   }
   else if ('error' in results['response_inv']) {
     if ('o1Label' in results['response'][0]) {
-      triple1['o1'] = join_entities(results['response'][0]['o1Label']);
+      triple1['o1'] = join_entities(results['response'][0]['o1Label'], 'o1', results.get);
       triple1['type'] = 'direct';
     }
-    if ('s1Label' in results['response'][0]) {
-      triple1['s1'] = join_entities(results['response'][0]['s1Label']);
+    else if ('s1Label' in results['response'][0]) {
+      triple1['s1'] = join_entities(results['response'][0]['s1Label'], 's1', results.get);
       triple1['type'] = 'direct';
+    }
+    else {
+      var msg = "<div class='row alert alert-warning alert-dismissible' style='margin-bottom: 0px'><strong>!!</strong> There exist no instantiated facts on the queried set predicate.<button type='button' class='close' data-dismiss='alert' aria-label='Close'> <span aria-hidden='true'>&times;</span> </button></div>";
+      displayinfo(msg);
     }
     triple1['q'] = results['response'][0]['q'];
-    triple2['direct'] = gettriples(results['response']);
+    triple2['direct'] = gettriples(results['response'], results.get);
   }
   else if ('error' in results['response']) {
     if ('o1Label' in results['response_inv'][0]) {
-      triple1['o1'] = join_entities(results['response_inv'][0]['o1Label']);
+      triple1['o1'] = join_entities(results['response_inv'][0]['o1Label'], 'o1', results.get);
       triple1['type'] = 'inverse';
     }
-    if ('s1Label' in results['response_inv'][0]) {
-      triple1['s1'] = join_entities(results['response_inv'][0]['s1Label']);
+    else if ('s1Label' in results['response_inv'][0]) {
+      triple1['s1'] = join_entities(results['response_inv'][0]['s1Label'], 's1', results.get);
       triple1['type'] = 'inverse';
+    }
+    else {
+      var msg = "<div class='row alert alert-warning alert-dismissible' style='margin-bottom: 0px'><strong>!!</strong> There exist no instantiated facts on the queried set predicate.<button type='button' class='close' data-dismiss='alert' aria-label='Close'> <span aria-hidden='true'>&times;</span> </button></div>";
+      displayinfo(msg);
     }
     triple1['q'] = results['response_inv'][0]['q'];
-    triple2['inverse'] = gettriples(results['response_inv']);
+    triple2['inverse'] = gettriples(results['response_inv'], results.get);
   }
   else {
     if ('o1Label' in results['response'][0]) {
-      triple1['o1'] = join_entities(results['response'][0]['o1Label']);
+      triple1['o1'] = join_entities(results['response'][0]['o1Label'], 'o1', results.get);
       triple1['type'] = 'direct';
       triple1['q'] = results['response'][0]['q'];
     }
-    if ('s1Label' in results['response'][0]) {
-      triple1['s1'] = join_entities(results['response'][0]['s1Label']);
+    else if ('s1Label' in results['response'][0]) {
+      triple1['s1'] = join_entities(results['response'][0]['s1Label'], 's1', results.get);
       triple1['type'] = 'direct';
       triple1['q'] = results['response'][0]['q'];
     }
     if ('o1Label' in results['response_inv'][0]) {
-      triple1['o1'] = join_entities(results['response_inv'][0]['o1Label']);
+      triple1['o1'] = join_entities(results['response_inv'][0]['o1Label'], 'o1', results.get);
       triple1['type'] = 'inverse';
       triple1['q'] = results['response_inv'][0]['q'];
     }
-    if ('s1Label' in results['response_inv'][0]) {
-      triple1['s1'] = join_entities(results['response_inv'][0]['s1Label']);
+    else if ('s1Label' in results['response_inv'][0]) {
+      triple1['s1'] = join_entities(results['response_inv'][0]['s1Label'], 's1', results.get);
       triple1['type'] = 'inverse';
       triple1['q'] = results['response_inv'][0]['q'];
     }
-    triple2['direct'] = gettriples(results['response']);
-    triple2['inverse'] = gettriples(results['response_inv']);
+    triple2['direct'] = gettriples(results['response'], results.get);
+    triple2['inverse'] = gettriples(results['response_inv'], results.get);
   }
   // console.log(triple1);
   // console.log(triple2);
-  // if (triple1.s1.length > 0 && triple1.p1.length > 0 && triple1.o1.length > 0){
   if (triple1.s1.hasOwnProperty('trunc') && triple1.p1.length > 0 && triple1.o1.hasOwnProperty('trunc')){  
     $(".first").show();
+    $("#s1").html(insert_trunc_and_full_result(triple1['s1']));
+    $("#o1").html(insert_trunc_and_full_result(triple1['o1']));
+    $("#q1 a").attr("href", triple1['q']);
     if (triple1['type'] === "direct") {
-      $("#s1").html(insert_trunc_and_full_result(triple1['s1']));
       $("#p1").html(triple1['p1']);
-      $("#o1").html(insert_trunc_and_full_result(triple1['o1']));
-      $("#q1 a").attr("href", triple1['q']);
       if (results['get'] == 'predE'){
-        $("#p1stat").html(insert_pstats(results['stats']['response'][triple1['p1']], 'predC'));
+        $("#p1").attr("title", insert_pstats(results['stats']['response'][triple1['p1']], 'predC'));
+        // $("#p1stat").html(insert_pstats(results['stats']['response'][triple1['p1']], 'predC'));
       }
       else {
-        $("#p1stat").html(insert_pstats(results['stats']['response'][triple1['p1']]));
+        $("#p1").attr("title", insert_pstats(results['stats']['response'][triple1['p1']]))
+        // $("#p1stat").html(insert_pstats(results['stats']['response'][triple1['p1']]));
       }
       
     }
     else {
-      $("#s1").html(insert_trunc_and_full_result(triple1['o1']));
-      $("#o1").html(insert_trunc_and_full_result(triple1['s1']));
-      $("#q1 a").attr("href", triple1['q']);
       if (results['get'] == 'predE'){
-        $("#p1stat").html(insert_pstats(results['stats']['response_inv'][triple1['p1']], 'predC'));
+        $("#p1").attr("title", insert_pstats(results['stats']['response_inv'][triple1['p1']], 'predC'));
+        // $("#p1stat").html(insert_pstats(results['stats']['response_inv'][triple1['p1']], 'predC'));
         $("#p1").html(triple1['p1']);
       }
       else {
-        $("#p1stat").html(insert_pstats(results['stats']['response_inv'][triple1['p1']]));
-        $("#p1").html(triple1['p1']+'_inv');
+        $("#p1").attr("title", insert_pstats(results['stats']['response_inv'][triple1['p1']]));
+        // $("#p1stat").html(insert_pstats(results['stats']['response_inv'][triple1['p1']]));
+        $("#p1").html(triple1['p1']+'<sup>-1</sup>');
       }
     }
     // console.log('s1.html: ', $("#s1").html());
     // console.log('p1.html: ', $("#p1").html());
     // console.log('o1.html: ', $("#o1").html());
-  }
-  else {
-    if (triple2['direct'].length > 0 || triple2['inverse'].length > 0){
-      var msg = "<div class='alert alert-warning alert-dismissible' style='margin-bottom: 0px'><strong>!!</strong> We could not retrieve main results!! Please check the related results<button type='button' class='close' aria-label='close'> <span aria-hidden='true'>&times;</span> </button></div>";
-      displayinfo(msg);
-    }
   }
   if (triple2['direct'].length > 0){
     // Modify heading of related predicates
@@ -433,13 +449,6 @@ function displayresponse (results) {
     // if (triple1['s1'].length > 0){
     if (triple1['s1'].hasOwnProperty('trunc')){
       for (var i=0; i<len; i++){
-        // if ('s1' in results) {
-        // add_child(triple1['s1'], triple2['direct'][i]['p2'], triple2['direct'][i]['o2']);
-        // }
-        // queried object is the subject for related predicates
-        // else {
-        //   add_child(triple1['s1'], triple2['direct'][i]['p2'], triple2['direct'][i]['o2']);
-        // }
         // add related results 
         if ((results['get'] === 'predC' && triple1['s1']['full'].indexOf(';') === -1) || (results['get'] === 'predE')){
           add_child(triple1['s1'], triple2['direct'][i]['p2'], triple2['direct'][i]['o2'], triple2['direct'][i]['q'], results['stats']['response'][triple2['direct'][i]['p2']], '', results['get']);
@@ -474,7 +483,7 @@ function displayresponse (results) {
           }
         }
         if (results['get'] === 'predE') {
-          add_child(triple2['inverse'][i]['s2'], triple2['inverse'][i]['p2'], triple1['s1'], triple2['inverse'][i]['q'], results['stats']['response_inv'][triple2['inverse'][i]['p2']], '_inv');
+          add_child(triple1['s1'], triple2['inverse'][i]['p2'], triple2['inverse'][i]['s2'], triple2['inverse'][i]['q'], results['stats']['response_inv'][triple2['inverse'][i]['p2']], '_inv');
         }
       }
     }
@@ -497,10 +506,7 @@ $.fn.wdautocomplete = function (entities, IDlist, val) {
     },
     success: function(result, status){
       var jsonOptions = result['search'];
-      // refresh datalist options
-      // if (jsonOptions.length > 0){
-      //   entities.innerHTML = '';
-      // }
+      
       jsonOptions.forEach(function(item) {
         // create new dropdown items
         if (!(item['label'] in IDlist)){
@@ -534,10 +540,7 @@ $.fn.dbpautocomplete = function (entities, IDlist, val) {
     },
     success: function(result, status){
       var jsonOptions = result[1];
-      // refresh datalist options
-      // if (jsonOptions.length > 0){
-      //   entities.innerHTML = '';
-      // }
+    
       var urlList = result[result.length-1];
       i=0;
       jsonOptions.forEach(function(label) {
@@ -559,17 +562,24 @@ $.fn.dbpautocomplete = function (entities, IDlist, val) {
 
 // function to complete sample queries
 function samplequeries(payload){
-  var waitmsg = "<div class='alert alert-info alert-dismissible' style='margin-bottom: 0px'><strong>!!</strong>Hold on to your seats, we are fetching the results!</div>";
-  var endmsg = "<div class='alert alert-success alert-success' style='margin-bottom: 0px'><strong>!!</strong> Hope the results satisfy your curiosity!<button type='button' class='close' aria-label='close'> <span aria-hidden='true'>&times;</span> </button></div>";
-  var errmsg = "<div class='alert alert-warning alert-warning' style='margin-bottom: 0px'><strong>!!</strong> Sorry we ran into some problems while running this query!<button type='button' class='close' aria-label='close'> <span aria-hidden='true'>&times;</span> </button></div>";
-    
-  displayinfo(waitmsg);
-  result_refresh();
+  $.when(form_refresh(), result_refresh()).then(displayinfo(waitmsg));
   subjectIDlist[payload['subject']] = payload['subjectID'];
+  subjectID = payload['subjectID'];
+  predicateID = payload['predicate'];
+  $.when($("#predicate").predautocomplete()).then(order_predicates());
   $("#subject").val(payload['subject']);
   $("#predicate").val(payload['predicate']);
-  $("#object").val(payload['object']);
+  // $("#object").val(payload['object']);
   option = payload['kbname'];
+  if (option === 'wikidata'){
+    change_kb_highlight();
+  }
+  else if (option =='dbpedia_raw'){
+    change_kb_highlight("#DBPr-btn", "#WD-btn", "#DBPm-btn");
+  }
+  else {
+    change_kb_highlight("#DBPm-btn", "#WD-btn", "#DBPr-btn");
+  }
   $.ajax({
     type: 'GET',
     url: flaskurl+'spoquery',
@@ -577,18 +587,16 @@ function samplequeries(payload){
     dataType: 'json',
     data: {
       'option': payload['kbname'],
-      'subject': payload['subjectID'],
-      'predicate': payload['predicate'],
-      'object': payload['object']
+      'subject': subjectID,
+      'predicate': predicateID
+      // 'object': payload['object']
     },
     success: function(result, status){
       // console.log(result);
-      // console.log(status);
+      console.log(subjectID, predicateID, predicateIDlist);
       displayinfo(endmsg);
       displayresponse(result);
-      // predicateIDlist = {};
-      // $("#predicate").predautocomplete();
-      subjectIDlist = {};
+      // subjectIDlist = {};
     },
     error: function(){
       displayinfo(errmsg);
@@ -597,18 +605,12 @@ function samplequeries(payload){
   });
 }
 
-// free text form refresh
-function ft_form_refresh() {
-  $('#displacy').empty();
-  ftresult = {};
-}
-
 // get Wikidata property labels file
 function get_wd_labels() {
   $.ajax({
     type : 'GET',
     url : flaskurl+'getwdlabels',
-    async: false,
+    // async: false,
     dataType: 'text',
     success: function(result, status) {
       var labels = $.csv.toObjects(result);
@@ -624,6 +626,13 @@ function get_wd_labels() {
   });
 }
 
+// change KB selection highlights
+function change_kb_highlight(selected="#WD-btn", other1="#DBPr-btn", other2="#DBPm-btn"){
+  $(selected).addClass("btn-outline-infp").removeClass("btn-link");
+  $(other1).addClass("btn-link").removeClass("btn-outline-info");
+  $(other2).addClass("btn-link").removeClass("btn-outline-info");
+}
+
 // generate table entries for top alignments from each item
 function get_table_data(item, kb='wd') {
   var asterix = '';
@@ -631,7 +640,7 @@ function get_table_data(item, kb='wd') {
     asterix = '*';
   }
   var button_pre = '<a style="padding-left: 5px;" href="';
-  var button_post = '" target="_blank"><span class="glyphicon glyphicon-search" style="font-size: 1em"></span></a>';
+  var button_post = '" target="_blank"><span class="glyphicon glyphicon-new-window" style="font-size: 1em; float: right;"></span></a>';
   var button_url = '', button = '';
   var labelE, labelC, anchorE = '', anchorC = '';
   var dbp = 'http://dbpedia.org/property/';
@@ -642,7 +651,7 @@ function get_table_data(item, kb='wd') {
   
     if (labelE.split('_inv').shift() in wd_labels){
       if (labelE.indexOf('_inv') !== -1){
-        labelE = labelE.split('_inv').shift() + ': ' + wd_labels[labelE.split('_inv').shift()] + '_inv';  
+        labelE = labelE.split('_inv').shift() + ': ' + wd_labels[labelE.split('_inv').shift()] + '<sup>-1</sup>';  
       }
       else{
         labelE = labelE.split('_inv').shift() + ': ' + wd_labels[labelE.split('_inv').shift()];  
@@ -677,6 +686,7 @@ function get_table_data(item, kb='wd') {
       button_url = 'http://dbpedia.org/snorql/?query=SELECT+distinct+%3Fs+WHERE+%7B%0D%0A%3Fo1+%3C'+
                    item['predE'].split('_inv').shift()+'%3E+%3Fs.%0D%0A%3Fs+%3C'+
                    item['predC']+'%3E+%3Fo2.%0D%0A%7Dlimit+10';
+      labelE = labelE.split('_inv').shift() + '<sup>-1</sup>';
     }
     else {
       button_url = 'http://dbpedia.org/snorql/?query=SELECT+distinct+%3Fs+WHERE+%7B%0D%0A%3Fs+%3C'+
@@ -689,6 +699,9 @@ function get_table_data(item, kb='wd') {
   else {
     labelE = item['predE'].split('/').pop().split('.').join('>');
     labelC = item['predC'].split('/').pop().split('.').join('>');
+    if (labelE.indexOf('_inv') !== -1){
+      labelE = labelE.split('_inv').shift() + '<sup>-1</sup>';
+    }
     button_pre = '';
     button_post = '';
     anchorE = '<a title="' + item['predE'].split('_inv').shift() + '">' + labelE + '</a>';
@@ -715,33 +728,217 @@ function fill_alignment_table(result, elementID, kb) {
   $('.dataTables_length').addClass('bs-select');
 }
 
+// make SPARQLQuery to Wikidata
+function makeSPARQLQuery( endpointUrl, sparqlQuery, doneCallback ) {
+  var settings;
+  if (option === 'wikidata') {
+    settings = {
+      headers: { Accept: 'application/sparql-results+json' },
+      data: { query: sparqlQuery}
+    }; 
+  }
+  else {
+    settings = {
+      headers: { Accept: 'application/sparql-results+json' },
+      data: { query: sparqlQuery, output: 'json'}
+    };
+  }
+  return $.ajax( endpointUrl, settings ).then( doneCallback );
+}
+
+// function to add #intantiations
+function addInstantiations(data, dir=''){
+  // console.log(data, dir);
+  if (option === 'wikidata' && $.isEmptyObject(wd_labels)){
+    $.when(get_wd_labels()).then(console.log('WD labels loaded'));
+  }
+  data.results.bindings.forEach(function(item) {
+    // console.log(item.p.value.split('/').pop());
+    var key;
+    if (option === 'wikidata'){
+      key = item.p.value.split('/').pop();
+      if (key in wd_labels && key+': '+wd_labels[key]+dir in predicateIDlist){
+        // console.log('updated',key+': '+wd_labels[key]+dir);
+        predicateIDlist[key+': '+wd_labels[key]+dir]['instances'] = item.cnt.value;
+      }  
+    }
+    else {
+      if (option === 'dbpedia_raw'){
+        // separate at capital letters
+        key = item.p.value.split('dbpedia.org/property/').pop().split(/(?=[A-Z])/);
+        // lowercase 1st char of each word and join all words with ' ' separator
+        key = key.map(function(word) { return word.charAt(0).toLowerCase()+word.substring(1) }).join(' ');
+        key = 'dbp: ' + key;
+      }
+      else {
+        key = item.p.value.split('dbpedia.org/ontology/').pop().split(/(?=[A-Z])/);
+        key = key.map(function(word) { return word.charAt(0).toLowerCase()+word.substring(1)} ).join(' ');
+        key = 'dbo: ' + key;
+      }
+      if (key+dir in predicateIDlist) {
+        predicateIDlist[key+dir]['instances'] = item.cnt.value;
+      } 
+    }    
+  });
+  sortedPredAutocomplete();
+}
+
+// return a disabled option with headings
+function set_heading(text){
+  var dropdown_option = document.createElement('option');
+  dropdown_option.value = " ";
+  dropdown_option.text = text;
+  dropdown_option.setAttribute('readonly', 'readonly');
+  return dropdown_option;
+}
+
+// function to update datalist options
+function sortedPredAutocomplete (){
+  // console.log('in sorted!');
+  var sortablePop = [], sortableUnpop = [], headingPopAlign = '', headingPopNotAlign = '', headingNotPop = '';
+  for (var key in predicateIDlist) {
+    // console.log(predicateIDlist[key]);
+    if (predicateIDlist[key]['instances'] == '0'){
+      sortableUnpop.push([key, predicateIDlist[key]['type'], predicateIDlist[key]['instances'], predicateIDlist[key]['aligned']]);
+    }
+    else{
+      sortablePop.push([key, predicateIDlist[key]['type'], predicateIDlist[key]['instances'], predicateIDlist[key]['aligned']]);  
+    }
+    
+  }
+
+  sortablePop.sort(function(a,b) {
+    return ((b[3]-a[3]) || (parseInt(b[2]) - parseInt(a[2])));
+  });
+
+  $.when($('#predentities').empty()).then(function() {
+    // console.log(sortable);
+    var predentities = document.getElementById('predentities');
+    sortablePop.forEach(function(item) {
+      var dropdown_option = document.createElement('option');
+      dropdown_option.setAttribute('pred-key', item[0]);
+      if (headingPopAlign === '' && item[3]){
+        predentities.appendChild(set_heading('== Populated w/ alignments =='));
+        headingPopAlign = 'pop w/ align set';
+        console.log(headingPopAlign);
+      }
+      if (headingPopNotAlign === '' && !item[3]){
+        predentities.appendChild(set_heading('== Populated w/o alignments =='));
+        headingPopNotAlign = 'pop w/o align set';
+        console.log(headingPopNotAlign); 
+      }
+      dropdown_option.value = item[0] + ' (' + item[2] + ')';
+      predentities.appendChild(dropdown_option);
+    });
+
+    sortableUnpop.forEach(function (item) {
+      var dropdown_option = document.createElement('option');
+      dropdown_option.setAttribute('pred-key', item[0]);
+      if (headingNotPop === ''){
+        predentities.appendChild(set_heading('== Unpopulated =='));
+        headingNotPop = 'not pop set';
+        console.log(headingNotPop);
+      }
+      dropdown_option.value = item[0];
+      predentities.appendChild(dropdown_option)
+    });
+  });
+}
+
+// fucntion to empty predicate ordering on old subject
+function emptyPredOrdering() {
+  Object.keys(predicateIDlist).forEach(function (item) {
+    predicateIDlist[item]['instances'] = '0';
+  });
+}
+
+// fucntion to check instantiated predicates and reorder predicates
+function order_predicates() {
+  // console.log('calling order');
+  // if the subjectID set then order predicates
+  if (subjectID.length !== 0){
+    var endpointUrl, sparqlQuery;
+    if (option === 'wikidata'){
+      endpointUrl = 'https://query.wikidata.org/sparql',
+      sparqlQuery1 = "select ?p (count(?o) as ?cnt) where {\n" +
+        "  wd:" + subjectID + " ?p ?o.\n" +
+        "?x wikibase:directClaim ?p .\n" +
+        "  ?x rdfs:label ?label .\n" +
+        "  filter(lang(?label) = 'en')\n" +
+        " }group by ?p";
+      sparqlQuery2 = "select ?p (count(?o) as ?cnt) where {\n" +
+        "?o ?p wd:" + subjectID + ". \n" +
+        "?x wikibase:directClaim ?p .\n" +
+        "  ?x rdfs:label ?label .\n" +
+        "  filter(lang(?label) = 'en')\n" +
+        " }group by ?p";
+    }
+    else {
+      endpointUrl = 'http://dbpedia.org/sparql';
+      if (option === 'dbpedia_raw'){
+        sparqlQuery1 = "select ?p (count(?o) as ?cnt) where {\n" +
+          "<http://dbpedia.org/resource/"  + subjectID + "> ?p ?o.\n" +
+          "filter(regex(str(?p), 'http://dbpedia.org/property/'))}";
+        sparqlQuery2 = "select ?p (count(?o) as ?cnt) where {\n" +
+          "?o ?p <http://dbpedia.org/resource/"  + subjectID + ">.\n" +
+          "filter(regex(str(?p), 'http://dbpedia.org/property/'))}";
+      } 
+      else {
+        sparqlQuery1 = "select ?p (count(?o) as ?cnt) where {\n" +
+          "<http://dbpedia.org/resource/"  + subjectID + "> ?p ?o.\n" +
+          "filter(regex(str(?p), 'http://dbpedia.org/ontology/'))}";
+        sparqlQuery2 = "select ?p (count(?o) as ?cnt) where {\n" +
+          "?o ?p <http://dbpedia.org/resource/"  + subjectID + ">.\n" +
+          "filter(regex(str(?p), 'http://dbpedia.org/ontology/'))}";
+      }
+    }
+    
+    if (!$.isEmptyObject($('#subject').data())){
+      if ($('#subject').data('sparql') !== sparqlQuery1 && $('#subject').data('sparqlinv') !== sparqlQuery2){
+        emptyPredOrdering();
+        // console.log('empty emptyPredOrdering');
+        // $.when(makeSPARQLQuery( endpointUrl, sparqlQuery1, function( data ) {
+        //   addInstantiations(data);
+        //   $('#subject').data('sparql', sparqlQuery1);
+        // }),
+        // makeSPARQLQuery( endpointUrl, sparqlQuery2, function( data ) {
+        //   addInstantiations(data, '_inv');
+        //   $('#subject').data('sparqlinv', sparqlQuery2);
+        // })).then(sortedPredAutocomplete());
+      }
+      else {
+        return;
+      }
+    }
+    // else {
+    makeSPARQLQuery( endpointUrl, sparqlQuery1, function( data ) {
+      addInstantiations(data);
+      $('#subject').data('sparql', sparqlQuery1);
+    });
+    makeSPARQLQuery( endpointUrl, sparqlQuery2, function( data ) {
+      addInstantiations(data, ' (inv)');
+      $('#subject').data('sparqlinv', sparqlQuery2);
+    });
+    // .then(sortedPredAutocomplete());
+    // }
+  }
+}
+
 // ******************************** on document ready **************************************//
 $(document).ready(function () {
   // ******************************** #home predicate events **************************************//
   // populate default predicate options (Wikidata) 
   $("#predicate").predautocomplete();
+  
   // on active input in predicate box
   $("#predicate").on('input change', function () {
-    // call for autocomplete options depending on KB option
     // set subject ID on proper matching input
-    if ($(this).val() !== '' && $(this).val() in predicateIDlist) {
-      predicateID = predicateIDlist[$(this).val()]["value"];
+    var selected = $('option[value="'+$(this).val()+'"]').attr('pred-key');
+    if ($(this).val() !== '' && selected in predicateIDlist) {
+      predicateID = selected;
     }
     else {
       predicateID = '';
-    }
-
-    // check if predicate is enumerating
-    if ($(this).val() !== '' && $(this).val() in predicateIDlist && predicateIDlist[$(this).val()]['type'] === 'predC') {
-      $("#object").val('Integer valued');
-      $("#object").prop('disabled', true);
-      if ($("#subject").attr("disabled")) {
-        $("#subject").prop('disabled', false);
-      }
-    }
-    else if ($("#object").attr("disabled") && $("#object").val() === 'Integer valued'){
-      $("#object").val('');
-      $("#object").prop('disabled', false); 
     }
   });
   // ******************************** #home subject events **************************************//
@@ -751,11 +948,12 @@ $(document).ready(function () {
       $('#subentities').empty();
       subjectIDlist = {};
       subjectID = '';
+      $('#subjectID').removeData();
     }
   });
 
   // on active input in subject box
-  $("#subject").on('input change', function () {    
+  $("#subject").on('input', function () {    
   // disable object if object input is non-empty
     var val = $(this).val();
     if (val !== '') {
@@ -765,6 +963,9 @@ $(document).ready(function () {
       if (val !== '' && option === 'wikidata') {
         if (val.split(':')[0] in subjectIDlist){
           subjectID = subjectIDlist[val.split(':')[0]];
+          // when -then does not work
+          // $.when(order_predicates()).then(sortedPredAutocomplete());
+          order_predicates()
         }
         else {
           $(this).wdautocomplete(subentities, subjectIDlist, val);
@@ -775,6 +976,9 @@ $(document).ready(function () {
           subjectID = subjectIDlist[$(this).val()];
           subjectID = subjectID.split('/');
           subjectID = subjectID[subjectID.length-1];
+          // when -then does not work
+          // $.when(order_predicates(option)).then(sortedPredAutocomplete());
+          order_predicates();
         }
         else {
           $(this).dbpautocomplete(subentities, subjectIDlist, val);
@@ -782,11 +986,9 @@ $(document).ready(function () {
       }
       else {
         subjectID = '';
+        $('#subject').removeData();
       }
     }
-    // else {
-    //  $("#object").prop('disabled', false); 
-    // }
     return;
   });
   // ******************************** KB selection events **************************************//
@@ -794,69 +996,59 @@ $(document).ready(function () {
   $("#WD-btn").click(function () {
     if (option !== 'wikidata') {
       // refresh options when KB changes
+      result_refresh();
       form_refresh();
     }
     option = 'wikidata';
-    $("#WD-btn").addClass("btn-outline-infp").removeClass("btn-link");
-    $("#DBPr-btn").addClass("btn-link").removeClass("btn-outline-info");
-    $("#DBPm-btn").addClass("btn-link").removeClass("btn-outline-info");
-    
+    change_kb_highlight("#WD-btn", "#DBPr-btn", "#DBPm-btn");    
     $("#predicate").predautocomplete();
   });
   $("#DBPr-btn").click(function () {
     if (option !== 'dbpedia_raw') {
       // refresh options when KB changes
+      result_refresh();
       form_refresh();
     }
     option = 'dbpedia_raw';
-    $("#WD-btn").addClass("btn-link").removeClass("btn-outline-info");
-    $("#DBPm-btn").addClass("btn-link").removeClass("btn-outline-info");
-    $("#DBPr-btn").addClass("btn-outline-info").removeClass("btn-link");
+    change_kb_highlight("#DBPr-btn", "#WD-btn", "#DBPm-btn");
     $("#predicate").predautocomplete();
   });
   $("#DBPm-btn").click(function () {
     if (option !== 'dbpedia_mapped') {
       // refresh options when KB changes
+      result_refresh();
       form_refresh();
     }
-    option = 'dbpedia_mapped';
-    $("#WD-btn").addClass("btn-link").removeClass("btn-outline-info");
-    $("#DBPr-btn").addClass("btn-link").removeClass("btn-outline-info");
-    $("#DBPm-btn").addClass("btn-outline-info").removeClass("btn-link");
+    option = 'dbpedia_mapped';    
+    change_kb_highlight("#DBPm-btn", "#WD-btn", "#DBPr-btn");
     $("#predicate").predautocomplete();
   });
   // ******************************** spo form refresh events **************************************//
   $("#spoRefresh").click(function () {
     option = 'wikidata';
-    $("#WD-btn").addClass("btn-outline-info").removeClass("btn-link");
-    $("#DBPr-btn").addClass("btn-link").removeClass("btn-outline-info");
-    $("#DBPm-btn").addClass("btn-link").removeClass("btn-outline-info");
+    change_kb_highlight();
     $.when(form_refresh(), result_refresh()).then($("#predicate").predautocomplete());
     // console.log(predicateIDlist);
   });
   // ******************************** query events **************************************//
   // send query parameters to the server
   $("#query").click(function () {
-    console.log('sub: '+subjectID+'\nobj: '+objectID+'\npred: '+predicateID+'\noption: '+option);
+    console.log('sub: '+subjectID+'\npred: '+predicateID+'\noption: '+option);
     // console.log(subjectIDlist);
     // console.log(objectIDlist);
     // display warning message
-    if (subjectID.length === 0 && objectID.length === 0 && predicateID.length === 0){
-      $('#formalert').children().replaceWith("<div class='alert alert-danger alert-dismissible col-sm-8'> <strong>Warning!</strong> Empty fields are not allowed! <button type='button' class='close' aria-label='close'> <span aria-hidden='true'>&times;</span> </button></div>");
-      $('#formalert').show();
+    if (subjectID.length === 0 && predicateID.length === 0){
+      displayinfo("<div class='alert alert-danger alert-dismissible'><strong>Error!</strong> Until CounQER learns telepathy empty fields are not allowed :) <button type='button' class='close' data-dismiss='alert' aria-label='Close'> <span aria-hidden='true'>&times;</span> </button></div>");
+      // $('#formalert').show();
     }
-    else if (subjectID.length === 0 && objectID.length === 0){
-      $('#formalert').children().replaceWith("<div class='alert alert-danger alert-dismissible col-sm-8'><strong>Warning!</strong> Subject and Object fields cannot both be empty! <button type='button' class='close' aria-label='close'> <span aria-hidden='true'>&times;</span> </button></div>");
-      $('#formalert').show();
+    else if (subjectID.length === 0){
+      displayinfo("<div class='alert alert-danger alert-dismissible'><strong>Error!</strong> Entity field cannot be empty! <button type='button' class='close' data-dismiss='alert' aria-label='Close'> <span aria-hidden='true'>&times;</span> </button></div>");
     }
     else if (predicateID.length === 0){
-      $('#formalert').children().replaceWith("<div class='alert alert-danger alert-dismissible col-sm-8'><strong>Warning!</strong> Predicate field cannot be empty! <button type='button' class='close' aria-label='close'> <span aria-hidden='true'>&times;</span> </button></div>");
-      $('#formalert').show();
+      displayinfo("<div class='alert alert-danger alert-dismissible'><strong>Error!</strong> Predicate field cannot be empty! <button type='button' class='close' data-dismiss='alert' aria-label='Close'> <span aria-hidden='true'>&times;</span> </button></div>");
     }
     else{  
-      var msg = "<div class='alert alert-info alert-dismissible' style='margin-bottom: 0px'><strong>!!</strong>Hold on to your seats, we are fetching the results!</div>";
-      displayinfo(msg); 
-      result_refresh();
+      $.when(result_refresh()).then(displayinfo(waitmsg));
       $.ajax({
         type: 'GET',
         url: flaskurl+'spoquery',
@@ -865,18 +1057,16 @@ $(document).ready(function () {
         data: {
           'option': option,
           'subject': subjectID,
-          'predicate': predicateID,
-          'object': objectID 
+          'predicate': predicateID
+          // 'object': objectID 
         },
         success: function(result, status){
           // console.log(result);
           // console.log(status);
-          var msg = "<div class='alert alert-success alert-dismissible' style='margin-bottom: 0px'><strong>!!</strong> Hope the results satisfy your curiosity!<button type='button' class='close' aria-label='close'> <span aria-hidden='true'>&times;</span> </button></div>";
-          displayinfo(msg);
+          displayinfo(endmsg);
           displayresponse(result);
         },
         error: function(){
-          var errmsg = "<div class='alert alert-warning alert-dismissible' style='margin-bottom: 0px'><strong>!!</strong> Sorry we ran into some problems while running this query!<button type='button' class='close' aria-label='close'> <span aria-hidden='true'>&times;</span> </button></div>"
           displayinfo(errmsg);
           console.log('error in flask get');
         }
@@ -896,17 +1086,17 @@ $(document).ready(function () {
       subject: "Microsoft",
       subjectID: "Q2283",
       predicate: "P1128: employees",
-      object: "",
+      // object: "",
       kbname: 'wikidata'
     };
     samplequeries(payload);
   });
   $('#dbpm_eg_1').on('click', function () {
     var payload = {
-      subject: "Wyoming Legislature",
-      subjectID: "Wyoming_Legislature",
+      subject: "Bundestag",
+      subjectID: "Bundestag",
       predicate: "dbo: number of members",
-      object: "",
+      // object: "",
       kbname: 'dbpedia_mapped'
     };
     samplequeries(payload);
@@ -915,8 +1105,8 @@ $(document).ready(function () {
     var payload = {
       subject: "Leander Paes",
       subjectID: "Leander_Paes",
-      predicate: "dbp: gold",
-      object: "",
+      predicate: "dbp: gold (inv)",
+      // object: "",
       kbname: 'dbpedia_raw'
     };
     samplequeries(payload);
@@ -926,7 +1116,7 @@ $(document).ready(function () {
       subject: "James A. Garfield",
       subjectID: "Q34597",
       predicate: "P40: child",
-      object: "",
+      // object: "",
       kbname: 'wikidata'
     };
     samplequeries(payload);
@@ -936,7 +1126,7 @@ $(document).ready(function () {
       subject: "World War I",
       subjectID: "Q361",
       predicate: "P1120: number of deaths",
-      object: "",
+      // object: "",
       kbname: 'wikidata'
     };
     samplequeries(payload);
@@ -946,7 +1136,7 @@ $(document).ready(function () {
       subject: "New York: state of the United States of America",
       subjectID: "Q1384",
       predicate: "P1082: population",
-      object: "",
+      // object: "",
       kbname: 'wikidata'
     };
     samplequeries(payload);
@@ -955,8 +1145,8 @@ $(document).ready(function () {
     var payload = {
       subject: "Google",
       subjectID: "Google",
-      predicate: "dbo: employer",
-      object: "",
+      predicate: "dbo: employer (inv)",
+      // object: "",
       kbname: 'dbpedia_mapped'
     };
     samplequeries(payload);
@@ -966,70 +1156,80 @@ $(document).ready(function () {
       subject: "Kolkata",
       subjectID: "Kolkata",
       predicate: "dbo: population total",
-      object: "",
+      // object: "",
       kbname: 'dbpedia_mapped'
     };
     samplequeries(payload);
   });
   // ******************************** predicate button click events ******************************//
-  $('#p1').on('click', function () {
-    // console.log('p1 clicked!!: ', $(this).html());
-    $('#p1stat').toggle();
-  });
+  // $('#p1').on('click', function () {
+  //   console.log('p1 clicked!!: ', $(this).html());
+  //   var sID, sLabel, pID;
+  //   if (option == 'wikidata'){
+  //     sID = $('#s1 a').eq(1).attr('href').split('http://wikidata.org/entity/').pop();
+  //   }
+  //   else {
+  //     sID = $('#s1 a').eq(1).attr('href').split('http://dbpedia.org/resource/').pop();
+  //   }
+  //   pID = $('#p1').text();
+  //   if (pID.endsWith('-1')){
+  //     pID = pID.split('-1').shift() + ' (inv)';
+  //   }
+  //   sLabel = $('#s1 a').eq(1).text();
+  //   var payload = {
+  //     subject: sLabel,
+  //     subjectID: sID,
+  //     predicate: pID,
+  //     kbname: option
+  //   };
+  //   // console.log(payload);
+  //   samplequeries(payload);
+  // });
 
   // requires event delegation for dynamically added tags
   $('.second').on('click', '.p2', function () {
-    // console.log('p2 clicked!!: ',$(this).html());
-    $(this).closest('tr').next().toggle();
+    console.log('p2 clicked!!: ',$(this).html());
+    var sID, sLabel, pID;
+    if (option == 'wikidata'){
+      sID = $(this).parent().siblings(".s2").find('a').eq(1).attr('href').split('http://wikidata.org/entity/').pop();
+    }
+    else {
+      sID = $(this).parent().siblings(".s2").find('a').eq(1).attr('href').split('http://dbpedia.org/resource/').pop();
+    }
+    pID = $(this).text();
+    if (pID.endsWith('-1')){
+      pID = pID.split('-1').shift() + ' (inv)';
+    }
+    sLabel = $(this).parent().siblings(".s2").find('a').eq(1).text();
+    var payload = {
+      subject: sLabel,
+      subjectID: sID,
+      predicate: pID,
+      kbname: option
+    };
+    samplequeries(payload);
   });
 
   //  ******************************* nav controls ********************************//
   $('#navbar').on('click', 'a', function () {
     $('#navbar .active').removeClass('active');
     $(this).addClass('active');
+    if ($(this).attr('href') == '#topalign'){
+      $('#topalign').show();
+      $('#spo').hide();
+    }
+    else {
+      $('#topalign').hide();
+      $('#spo').show();
+    }
   });
 
   //  ******************************* nav controls return to top ********************************//
   $('#footerReturn').click(function () {
     $('#navbar .active').removeClass('active');
     $('#navbar > li > a').first().addClass('active');
-  });
-
-  // ******************************** free text KB selection events **************************************//
-  // changes made on selecting a KB preference
-  $("#ftWD-btn").click(function () {
-    if (ftoption !== 'wikidata') {
-      // refresh options when KB changes
-      ft_form_refresh();
-    }
-    ftoption = 'wikidata';
-    $("#ftWD-btn").addClass("btn-outline-infp").removeClass("btn-link");
-    $("#ftDBPr-btn").addClass("btn-link").removeClass("btn-outline-info");
-    $("#ftDBPm-btn").addClass("btn-link").removeClass("btn-outline-info");
-    
-    // $("#predicate").predautocomplete();
-  });
-  $("#ftDBPr-btn").click(function () {
-    if (ftoption !== 'dbpedia_raw') {
-      // refresh options when KB changes
-      ft_form_refresh();
-    }
-    ftoption = 'dbpedia_raw';
-    $("#ftWD-btn").addClass("btn-link").removeClass("btn-outline-info");
-    $("#ftDBPm-btn").addClass("btn-link").removeClass("btn-outline-info");
-    $("#ftDBPr-btn").addClass("btn-outline-info").removeClass("btn-link");
-    // $("#predicate").predautocomplete();
-  });
-  $("#ftDBPm-btn").click(function () {
-    if (option !== 'dbpedia_mapped') {
-      // refresh options when KB changes
-      ft_form_refresh();
-    }
-    option = 'dbpedia_mapped';
-    $("#ftWD-btn").addClass("btn-link").removeClass("btn-outline-info");
-    $("#ftDBPr-btn").addClass("btn-link").removeClass("btn-outline-info");
-    $("#ftDBPm-btn").addClass("btn-outline-info").removeClass("btn-link");
-    // $("#predicate").predautocomplete();
+    $('#topalign').hide();
+    $('#spo').show();
   });
 
   // ******************************* alignment tab click *************************** //
@@ -1045,8 +1245,7 @@ $(document).ready(function () {
         data: {'kbname': 'wikidata'},
         success: function(result, status){
           if ($.isEmptyObject(wd_labels)){
-            get_wd_labels();
-            fill_alignment_table(result, '#tbl_wd_topalign', 'wd');
+            $.when(get_wd_labels()).then(fill_alignment_table(result, '#tbl_wd_topalign', 'wd'));
           }
           else {
             fill_alignment_table(result, '#tbl_wd_topalign', 'wd');

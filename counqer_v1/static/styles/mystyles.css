@@ -93,8 +93,14 @@ nav, nav ul, nav a {
   padding-right: 5px;
 }
 
+#spoRefresh {
+  text-align: right !important;
+}
+
 #examples {
   padding-left: 10px;
+  padding-top: 10px;
+  padding-right: 10px;
 }
 
 #examples .btn {
@@ -102,6 +108,12 @@ nav, nav ul, nav a {
   padding-top: 2px;
   padding-bottom: 2px;
   font-size: 0.9em;
+}
+
+.my-btn-wrap {
+  white-space: normal !important;
+  word-wrap: break-word !important;
+  text-align: left;
 }
 
 .no-gutter, .no-gutter [class*='col-'] {

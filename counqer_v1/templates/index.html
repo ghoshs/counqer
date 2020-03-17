@@ -5,6 +5,8 @@
 	<meta charset="utf-8">
 	<!-- mobile rendering with initial zoom level-->
 	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<!-- allow ajax calls to http  -->
+	<meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
 	<!-- JQuery -->
 	<script src="{{ url_for('static', filename='scripts/jquery.min.js') }}"></script>
 	<!-- JQuery csv handling library -->
@@ -32,7 +34,7 @@
 	</a>
 	<!-- <button type="button" data-toggle="collapse" data-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation" class="navbar-toggler"><span class="navbar-toggler-icon"></span></button> -->
 	<ul id='navbar' class=navbar-nav>
-		<li><a class="active" href="#">SPO query</a></li>
+		<li><a class="active" href="#spo">SPO query</a></li>
 		<!-- <li><a href="#ftq">Free text query</a></li> -->
 		<li><a href="#topalign">Alignments</a></li>
 	</ul>
@@ -42,13 +44,53 @@
 	<h2>Counting Quantifiers and Entity-valued predicates</h2>
 </div> -->
 
-<div class="container body" id="home">
+<div class="container body" id="spo">
 	<h2>SPO query on set predicates</h2>
 	<hr>
 	<div class="row">
-		<p>Provide the name of an entity (either a subject or an object) and pick any predicate from the dropdown. CounQER retrieves SPO triples from Knowledge Bases which answer your query. Additionally, it also tries to provide supplementary count related facts with respect to the queried entity.<br>
-		You can choose between three Knowledge Bases - <strong>Wikidata</strong> <img src="{{ url_for('static', filename='images/wikidataLogo.png') }}" width="30">, <strong>DBpedia raw extraction</strong> <img src="{{ url_for('static', filename='images/DBpediarawLogo.png') }}" width="30"> and <strong>DBpedia mapping-based extraction</strong> <img src="{{ url_for('static', filename='images/DBpediamapLogo.png') }}" width="30">.<br>
-		You may also try out some pre-defined queries in the examples.</p>
+		<div class="col-sm-6">Set predicates give count related information on entities. 
+			<button class="btn btn-link" data-target="#steps" data-toggle="collapse">
+				Read more..
+				<!-- <span class="glyphicon glyphicon-info-sign" style="font-size: 1em"></span> -->
+			</button>
+		</div>
+		<div class="col-sm-6">Are you stuck?
+			<button class="btn btn-link" data-target="#disclaimer" data-toggle="collapse">
+				<span class="glyphicon glyphicon-info-sign" style="font-size: 1em"></span>
+			</button>
+		</div>
+		
+		<div class="collapse col-sm-6" id="steps" style="float:left">
+			<ol>
+				<li>Select a KB (default is Wikidata).</li>
+				<li>Select an entity.</li>
+				<li>Select a set predicate.
+					<ul>
+						<li>Inverse predicates are denoted by <em>(inv)</em></li>
+						<li>Set prediate suggestions are ordered by 
+							<ol type="a">
+								<li>the number of instantiations <em>(n)</em> for the selected entity.</li>
+								<li>presence of alignments.</li>
+							</ol>
+						</li>
+					</ul>
+				</li>
+				<li>Click <span class="glyphicon glyphicon-search" style="font-size: 1em"></span> for results.</li>
+				<li>Follow <span class="glyphicon glyphicon-new-window" style="font-size: 1em"></span> to view the SPARQL queries made by CounQER.</li>
+			</ol>	
+		</div>
+		<div class="collapse col-sm-6" id="disclaimer" style="float:right">
+			<ol>
+				<li>Have you tried refreshing the input <span class="glyphicon glyphicon-refresh" style="font-size: 1em"></span> ?</li>
+				<li>Does refreshing the page work?</li>
+				<li>If an entity is missing in the suggestion, then it doesn't exist in the KB.</li>
+				<li>Click on any related predicate button to switch to a new query!</li>
+			</ol>
+		</div>
+
+		<!-- <p>Provide the name of an entity (either a subject or an object) and pick any predicate from the dropdown. CounQER retrieves SPO triples from Knowledge Bases which answer your query. Additionally, it also tries to provide supplementary count related facts with respect to the queried entity.<br> -->
+		<!-- You can choose between three Knowledge Bases - <strong>Wikidata</strong> <img src="{{ url_for('static', filename='images/wikidataLogo.png') }}" width="30">, <strong>DBpedia raw extraction</strong> <img src="{{ url_for('static', filename='images/DBpediarawLogo.png') }}" width="30"> and <strong>DBpedia mapping-based extraction</strong> <img src="{{ url_for('static', filename='images/DBpediamapLogo.png') }}" width="30">.<br>
+		You may also try out some pre-defined queries in the examples.</p> -->
 		<!-- <hr> -->
 	</div>
 	<!-- <form class="row"> -->
@@ -56,20 +98,20 @@
 		<div class="col-sm-1" id="spoRefresh">
 			<button type="button" class="btn btn-link">
 				<!-- <img src="images/ocat2.png" width="50"> -->
-				<span class="glyphicon glyphicon-refresh" style="font-size: 2.7em"></span>
+				<span class="glyphicon glyphicon-refresh" style="font-size: 2em"></span>
 			</button>
 		</div>
-		<div class="col-sm-3">
+		<div class="col-sm-4">
 			<div class="input-group">
 				<span class="input-group-addon">Entity</span>
 				<input autoComplete="off" id="subject" type="text" class="form-control" name="subject" placeholder="Entity" list="subentities">
 				<datalist id="subentities"></datalist>
 			</div>
 		</div>
-		<div class="col-sm-3">
+		<div class="col-sm-4">
 			<div class="input-group">
-				<span class="input-group-addon">Predicate</span>
-				<input autoComplete="off" id="predicate" type="text" class="form-control" name="predicate" placeholder="Predicate" list="predentities">
+				<span class="input-group-addon">Set Predicate</span>
+				<input autoComplete="off" id="predicate" type="text" class="form-control" name="predicate" placeholder="Set Predicate" list="predentities">
 				<datalist id="predentities"></datalist>
 			</div>
 		</div>
@@ -78,8 +120,10 @@
 				<span class="glyphicon glyphicon-search" style="font-size: 2em"></span>
 			</button>
 		</div>
-		<div class="col-sm-3">
-			<div class="btn-grp">
+		<div class="col-sm-2">
+			<div class="row vertical-align no-gutter"><strong>Select a KB</strong></div>
+			<div class="row vertical-align no-gutter">
+				<div class="btn-grp">
 					<button type="button" class="btn btn-outline-info" id="WD-btn">
 						<img src="{{ url_for('static', filename='images/wikidataLogo.png') }}" width="30" title="Wikidata">
 					</button>
@@ -90,32 +134,37 @@
 						<img src="{{ url_for('static', filename='images/DBpediamapLogo.png') }}" width="30" title="DBP: mapping KB">
 					</button>
 				<!-- </div> -->
+				</div>
 			</div>
 		</div>
 	</div>
-	<div id="formalert" class="row vertical-align" role="alert" style="display: none" data-hide="formalert">
-		<div class="alert alert-danger alert-dismissible">
+	<!-- <div class="row no-gutter">
+		<div class="col-sm-2"></div>
+		<div id="formalert" class="col-sm-8" role="alert" style="display: none">
+			<div class="alert alert-danger alert-dismissible" style="margin-bottom: 0px">
+			</div>
 		</div>
-	</div>
+	</div> -->
+	
 	<!-- result section with query status bar, examples and returned SPO triples  -->
 	<div class="row no-gutter" style="justify-content: left">
-		<div class="col-sm-8">	
+		<div class="col-sm-9">	
 			<!-- form refresh & query status -->
 			<div class="row no-gutter">
 				<div class="col-sm-2"></div>
-				<div id="displayalert" class="col-sm-8" role="alert" style="display: none" data-hide="displayalert">
-					<div class="alert alert-info alert-dismissible" style="margin-bottom: 0px">
+				<div id="displayalert" class="col-sm-8" role="alert" style="display: none">
+					<!-- <div class="alert alert-info alert-dismissible" style="margin-bottom: 0px">
 					 We are waiting for your input.
-					</div>
+					</div> -->
 				</div>
 			</div>
 			<table class="table first" style="display: none">
 				<tbody>
 					<tr class="triple">
 						<td id="s1" class="text-center partial"></td>
-						<td class="text-center"><div class="col-12 btn btn-primary" id="p1"></div></td>
+						<td class="text-center"><div class="col-12 btn btn-primary disabled" id="p1"></div></td>
 						<td id="o1" class="text-center partial"></td>
-						<td id="q1"><a href="#" target="_blank"><span class="glyphicon glyphicon-search" style="font-size: 1em"></span></a></td>
+						<td id="q1"><a href="#" target="_blank"><span class="glyphicon glyphicon-new-window" style="font-size: 1em"></span></a></td>
 					</tr>
 					<tr id="p1stat" style="display: none"></tr>
 				</tbody>
@@ -133,50 +182,51 @@
 			</div>
 		</div>
 		<!-- Example column -->
-		<div class="col-sm-4" id="examples">
+		<div class="col-sm-3" id="examples" style="border: 1px solid rgb(204, 204, 204); border-radius: 5px;">
 				<div class="row no-gutter">
 					<strong>Examples</strong>
 				</div>
 				<div class="row no-gutter">
-					<button type="button" class="btn btn-link" id="wd_eg_1">
-						<img src="{{ url_for('static', filename='images/wikidataLogo.png') }}" width="30"> Microsoft, employees, ?						
+					<button type="button" class="btn btn-link my-btn-wrap" id="wd_eg_1">
+						<img src="{{ url_for('static', filename='images/wikidataLogo.png') }}" width="30"> Microsoft, employees, ?
 					</button>
 				</div>
 				<div class="row no-gutter">
-					<button type="button" class="btn btn-link" id="dbpm_eg_1">
-						<img src="{{ url_for('static', filename='images/DBpediamapLogo.png') }}" width="30"> Wyoming Legislature, number of members, ?
+					<button type="button" class="btn btn-link my-btn-wrap" id="dbpm_eg_1">
+						<img src="{{ url_for('static', filename='images/DBpediamapLogo.png') }}" width="30"> Bundestag, number of members, ?
 					</button>
 				</div>
 				<div class="row no-gutter">
-					<button type="button" class="btn btn-link" id="dbpr_eg_1">
-						<img src="{{ url_for('static', filename='images/DBpediarawLogo.png') }}" width="30"> Leander Paes, gold, ?						
+					<button type="button" class="btn btn-link my-btn-wrap" id="dbpr_eg_1">
+						<img src="{{ url_for('static', filename='images/DBpediarawLogo.png') }}" width="30"> Leander Paes, gold<sup>-1</sup>, ?
 					</button>
 				</div>
-				<div class="row no-gutter">
+				<!-- <hr style="border-top: 1px solid rgb(204, 204, 204); padding-left:-10px;"> -->
+				<div class="row no-gutter" style="border-top: 1px solid rgb(204, 204, 204);">
 					<strong>Ideal Alignments</strong><sup><a href="#fnIdeal" id="divIdeal">*</a></sup>
 				</div>
 				<div class="row no-gutter">
-					<button type="button" class="btn btn-link" id="wd_ideal_1">
+					<button type="button" class="btn btn-link my-btn-wrap" id="wd_ideal_1">
 						<img src="{{ url_for('static', filename='images/wikidataLogo.png') }}" width="30"> James A. Garfield, child, ? 
 					</button>
 				</div>
 				<div class="row no-gutter">
-					<button type="button" class="btn btn-link" id="wd_ideal_2">
+					<button type="button" class="btn btn-link my-btn-wrap" id="wd_ideal_2">
 						<img src="{{ url_for('static', filename='images/wikidataLogo.png') }}" width="30"> World War I , number of deaths, ? 
 					</button>
 				</div>
 				<div class="row no-gutter">
-					<button type="button" class="btn btn-link" id="wd_ideal_3">
+					<button type="button" class="btn btn-link my-btn-wrap" id="wd_ideal_3">
 						<img src="{{ url_for('static', filename='images/wikidataLogo.png') }}" width="30"> New York, population, ? 
 					</button>
 				</div>
 				<div class="row no-gutter">
-					<button type="button" class="btn btn-link" id="dbpm_ideal_1">
-						<img src="{{ url_for('static', filename='images/DBpediamapLogo.png') }}" width="30"> Google, employer, ?
+					<button type="button" class="btn btn-link my-btn-wrap" id="dbpm_ideal_1">
+						<img src="{{ url_for('static', filename='images/DBpediamapLogo.png') }}" width="30"> Google, employer<sup>-1</sup>, ?
 					</button>
 				</div>
 				<div class="row no-gutter">
-					<button type="button" class="btn btn-link" id="dbpm_ideal_2">
+					<button type="button" class="btn btn-link my-btn-wrap" id="dbpm_ideal_2">
 						<img src="{{ url_for('static', filename='images/DBpediamapLogo.png') }}" width="30"> Kolkata, population total, ?
 					</button>
 				</div>
@@ -186,7 +236,7 @@
 					</button>
 				</div> -->
 				<div class="row no-gutter">
-					<sup id="fnIdeal">*We show some ideal alignments in KBs which are missed by CounQER.
+					<sup id="fnIdeal">*We show some ideal KB alignments which are missed by CounQER.
 						<!-- <a href="#divIdeal">↩</a> -->
 					</sup>
 				</div>
@@ -194,7 +244,7 @@
 	</div>
 </div>
 
-<div class="container body" id="topalign">
+<div class="container body" id="topalign" style="display:none;">
 	<h2>Alignments from all KBs</h2>
 	<hr>
 	<ul class="nav nav-tabs" id="nav_topalign">
@@ -206,7 +256,15 @@
 	</ul>
 	<div class="tab-content">
 		<div id="ow_topalign" class="tab-pane fade in active">
-			We show the alignment pairs in each KB. 
+			Here we present the alignments found by CounQER in each of the four KBs.
+			<ul>
+				<li>Click on a tab to select a KB.</li>
+				<li>Under each tab is a table with alignments on each row and the set predicate type and alignment score in the columns.</li>
+				<li>The tables are searchable and sortable by the columns.</li>
+				<li>If a set predicate exists in the SPO dropdown but not in table of the corresponding KB, the said predicate has no alignment.</li>
+				<li>Try out the link to the SPARQL query interface made available for each alignment.</li>
+				<li>Each link opens with a ready-made query to look up entities which have the alignment.</li>
+			</ul>  
 		</div>
 
 		<div id="wd_topalign" class="tab-pane fade">
@@ -217,7 +275,7 @@
 		      		<tr>
 		      			<th>Enumerating Predicate</th>
 		      			<th>Counting Predicate</th>
-		      			<th>Score</th>
+		      			<th>Alignment Score</th>
 		      		</tr>
 		      	</thead>
 		      	<tbody></tbody>
@@ -232,7 +290,7 @@
 		      		<tr>
 		      			<th>Enumerating Predicate</th>
 		      			<th>Counting Predicate</th>
-		      			<th>Score</th>
+		      			<th>Alignment Score</th>
 		      		</tr>
 		      	</thead>
 		      	<tbody></tbody>
@@ -247,7 +305,7 @@
 		      		<tr>
 		      			<th>Enumerating Predicate</th>
 		      			<th>Counting Predicate</th>
-		      			<th>Score</th>
+		      			<th>Alignment Score</th>
 		      		</tr>
 		      	</thead>
 		      	<tbody></tbody>
@@ -278,13 +336,13 @@
 <div id="footer">
 	<div class="row vertical-align no-gutter">
 		<div class="col-sm-2 align-self-start text-left">
-			<img src="{{ url_for('static', filename='images/mpilogo-inf-transparent.png') }}" width="150">
+			<a href="https://www.mpi-inf.mpg.de/departments/databases-and-information-systems/research/knowledge-base-recall/" target="_blank"><img src="{{ url_for('static', filename='images/mpilogo-inf-transparent.png') }}" width="150"></a>
 		</div>
 		<div class="col-sm-8 align-self-center text-center">
 			<a href="https://imprint.mpi-klsb.mpg.de/inf/counqer.mpi-inf.mpg.de">Imprint</a> |
 			<a href="https://data-protection.mpi-klsb.mpg.de/inf/counqer.mpi-inf.mpg.de">Data Protection</a> |
 			<a href="mailto:ghoshs@mpi-inf.mpg.de">Contact</a> |
-			<a href="#home" id='footerReturn'>Return to top</a>
+			<a href="#spo" id='footerReturn'>Return to top</a>
 		</div>
 	</div>
 </div>
