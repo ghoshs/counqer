@@ -610,7 +610,7 @@ function get_wd_labels() {
   $.ajax({
     type : 'GET',
     url : flaskurl+'getwdlabels',
-    // async: false,
+    async: false,
     dataType: 'text',
     success: function(result, status) {
       var labels = $.csv.toObjects(result);
