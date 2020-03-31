@@ -17,7 +17,7 @@ def text_tags(query, max_results=10):
 	
 	# takes only single query
 	results = call_bing_api(query, max_results)
-	pprint.pprint(results)
+	# pprint.pprint(results)
 
 	# remove unidentified separators.
 	for item in results:

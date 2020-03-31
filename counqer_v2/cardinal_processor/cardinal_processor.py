@@ -20,7 +20,7 @@ def get_cardinal_stats(result):
 	# pprint.pprint(result)
 	cardinals = {}
 	val_dict = {'integers': [], 'pos': [], 'weight': []}
-	headn_val_dict = {'integers': [], 'pos': [], 'weight': [], 'sim': [], 'text': [], 'root': []}
+	headn_val_dict = {'integers': [], 'pos': [], 'weight': [], 'sim': [], 'text': [], 'root': [], 'amod': []}
 	# for each snippet
 	for idx, item in enumerate(result):
 		# create a list of integers in the snippet
@@ -37,19 +37,21 @@ def get_cardinal_stats(result):
 		headn_val_dict['sim'] += [x['sim'] for x in item['headn_match'] if len(x['val']) > 0]
 		headn_val_dict['text'] += [x['text'] for x in item['headn_match'] if len(x['val']) > 0] 
 		headn_val_dict['root'] += [x['root'] for x in item['headn_match'] if len(x['val']) > 0] 
+		headn_val_dict['amod'] += [x['amod'] for x in item['headn_match'] if len(x['val']) > 0]
 
 	val_dict['weight'] = [1.0/x for x in val_dict['pos']]
 	headn_val_dict['weight'] = [1.0/x for x in headn_val_dict['pos']]
 
-	if len(val_dict['integers']) == 0:
-		cardinals['median'] = cardinals['pos_wgt_median'] = ''
-	else:
-		df = get_dataframe(val_dict)
+	# do not consider all intgers
+	# if len(val_dict['integers']) == 0:
+	cardinals['median'] = cardinals['pos_wgt_median'] = ''
+	# else:
+		# df = get_dataframe(val_dict)
 		
-		cutoff = df.weight.sum()/2.0
-		cardinals['integers'] = [{'int': x, 'pos': val_dict['pos'][idx]} for idx, x in enumerate(val_dict['integers'])]
-		cardinals['pos_wgt_median'] = str(df.integers[df['cumsum'] >= cutoff].iloc[0]) if len(df.integers[df['cumsum'] >= cutoff]) > 0 else ''
-		cardinals['median'] = str(math.floor(df.integers.median()))
+		# cutoff = df.weight.sum()/2.0
+		# cardinals['integers'] = [{'int': x, 'pos': val_dict['pos'][idx]} for idx, x in enumerate(val_dict['integers'])]
+		# cardinals['pos_wgt_median'] = str(df.integers[df['cumsum'] >= cutoff].iloc[0]) if len(df.integers[df['cumsum'] >= cutoff]) > 0 else ''
+		# cardinals['median'] = str(math.floor(df.integers.median()))
 
 	if len(headn_val_dict['integers']) == 0:
 		cardinals['median_headn'] = cardinals['pos_wgt_median_headn'] = ''
@@ -63,6 +65,7 @@ def get_cardinal_stats(result):
 		cardinals['sim_headn'] = headn_val_dict['sim']
 		cardinals['text_headn'] = headn_val_dict['text']
 		cardinals['root_headn'] = headn_val_dict['root']
+		cardinals['amod_headn'] = headn_val_dict['amod']
 
 	return cardinals
 
@@ -103,7 +106,11 @@ def get_nummodifiers(doc, query_nounphrase=None):
 				else:
 					sim = 0
 				if sim > 0.5:
-					cardinal_list.append({'val': get_word_to_num([{'text': chunk.text}])[0], 'text': chunk.text, 'root': chunk.root.text, 'sim': str(sim)})
+					modifier = []
+					for token in chunk:
+						if token.dep_ == 'amod':
+							modifier.append(token.text)
+					cardinal_list.append({'val': get_word_to_num([{'text': chunk.text}])[0], 'text': chunk.text, 'root': chunk.root.text, 'sim': str(sim), 'amod': ','.join(modifier)})
 	# text_nounphrase = [item for item in text_nounphrase if any(a['text'] in item['text'] for a in text_cardinals)]
 	
 	# cardinal_list = [{'val': get_word_to_num([item]), 'text': item['text']} for item in text_nounphrase]
