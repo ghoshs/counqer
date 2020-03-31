@@ -20,30 +20,39 @@ def create_outfile(outfile, header):
 			writer.writeheader()
 
 def get_median_results(cardinal_stats, val, rowbuffer):
-	median_labels = {'median': val+'_median', 'pos_wgt_median': val+'_median_pos', 
-					 'median_headn': val+'_hnoun', 'pos_wgt_median_headn': val+'_hnoun_pos'}
+	# median_labels = {'median': val+'_median', 'pos_wgt_median': val+'_median_pos', 
+					 # 'median_headn': val+'_hnoun', 'pos_wgt_median_headn': val+'_hnoun_pos'}
+	median_labels = {'median_headn': val+'_hnoun'}
 	for label in median_labels:
 		rowbuffer[median_labels[label]] = int(cardinal_stats[label]) if len(cardinal_stats[label]) > 0 else None
 
-	if 'integers' in cardinal_stats:
-		rowbuffer[val+'_int_list'] = '{'+','.join([item['int'] for item in cardinal_stats['integers']])+'}'
+	# if 'integers' in cardinal_stats:
+		# rowbuffer[val+'_int_list'] = '{'+','.join([item['int'] for item in cardinal_stats['integers']])+'}'
 	if 'text_headn' in cardinal_stats:
 		rowbuffer[val+'_hnoun_list'] = '{'+','.join([str(item['int'])+ ': ' +cardinal_stats['text_headn'][idx] for idx,item in enumerate(cardinal_stats['integers_headn'])]) + '}'
 		hnoun_freq_dict = defaultdict(int)
+		amod_freq_dict = defaultdict(int)
 		for hnoun in cardinal_stats['root_headn']:
 			hnoun_freq_dict[hnoun] += 1
+		for amod in cardinal_stats['amod_headn']:
+			for item in amod.split(','):
+				amod_freq_dict[item] += 1
 		rowbuffer[val+'_hnoun_freq'] = '{'+','.join([str(hnoun_freq_dict[hnoun])+': '+hnoun for hnoun in hnoun_freq_dict]) + '}'
+		rowbuffer[val+'_amod_freq'] = '{' + ','.join([str(amod_freq_dict[amod])+': '+amod for amod in amod_freq_dict]) + '}'
 	return rowbuffer
 
 def analyser(queryfile='query_templates_ftq.txt', instancefile='instances_ftq.txt', outfile='query_analysis.csv'):
 	queries = cfq.create_ftq_queries(queryfile, instancefile)
 
-	header = ['Query', 'answer_gold', 'Google', 'Bing', '5_median', '5_median_pos', '5_hnoun', '5_hnoun_pos', '5_int_list', '5_hnoun_list', '5_hnoun_freq',
-				'10_median', '10_median_pos', '10_hnoun', '10_hnoun_pos', '10_int_list', '10_hnoun_list', '10_hnoun_freq',
-				'50_median', '50_median_pos', '50_hnoun', '50_hnoun_pos', '50_int_list', '50_hnoun_list', '50_hnoun_freq']
+	header = ['Query', 'answer_gold', 'Google', 'Bing', 
+				'5_hnoun', '5_hnoun_list', '5_hnoun_freq', '5_amod_freq',
+				'10_hnoun', '10_hnoun_list', '10_hnoun_freq', '10_amod_freq',
+				'50_hnoun', '50_hnoun_list', '50_hnoun_freq', '50_amod_freq']
 	create_outfile(outfile, header)
 
-	url = 'https://counqer.mpi-inf.mpg.de/ftq/ftresults'
+	## server edits ##
+	# url = 'https://counqer.mpi-inf.mpg.de/ftq/ftresults'
+	url = 'http://localhost:5000/ftresults'
 	snippet_vals = [5,10,50] 
 	for q in tqdm(queries):
 		rowbuffer = {'Query': q}
