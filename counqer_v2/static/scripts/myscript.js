@@ -90,7 +90,7 @@ function render_answer(result) {
   var html_answer_dist = '<div class="row vertical-align no-gutter" id="answerDist"></div>';
   $("#answer").append(html_answer_dist);
   // If no answer
-  if (!data.hasOwnProperty('integers') || data.integers.length < 1){
+  if (!data.hasOwnProperty('integers_headn') || data.integers_headn.length < 1){
     var text = '<div class="col-sm-12">' + 
                'No answer found from snippets' +
                '</div>';
@@ -101,20 +101,14 @@ function render_answer(result) {
                     '<button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown"'; 
   dd_postID = ' > ';
   dd_post_text = '<span class="caret"></span></button>';
-  html_median = dd_preID + 'id="noWeightMedian"' + dd_postID +  
-                'Median: ' + data.median + get_answerDist_tables(data, "noWeightMedian")+
-                '</div>';
-  html_wgt = dd_preID + 'id="posWeightMedian"' + dd_postID +
-                'Position weighted: ' + data.pos_wgt_median + get_answerDist_tables(data, "posWeightMedian") + 
-                '</div>';
   html_headn = dd_preID + 'id="headnMatchedMedian"' + dd_postID +
                 'Head noun matched: ' + data.median_headn + get_answerDist_tables(data, "headnMatchedMedian") + 
                 '</div>';
-  html_headn_wgt = dd_preID + 'id="headnWeightMedian"' + dd_postID +
-                'Head noun + position: ' + data.pos_wgt_median_headn + get_answerDist_tables(data, "headnWeightMedian") + 
-                '</div>';
+  // html_headn_wgt = dd_preID + 'id="headnWeightMedian"' + dd_postID +
+  //               'Head noun + position: ' + data.pos_wgt_median_headn + get_answerDist_tables(data, "headnWeightMedian") + 
+  //               '</div>';
 
-  $("#answerMedian").append(html_median + html_wgt + html_headn + html_headn_wgt);
+  $("#answerMedian").append(html_headn);
   // $("#answerDist").append(get_answerDist_tables(data, "noWeightMedian"));
   // $("#answerDist").append(get_answerDist_tables(data, "posWeightMedian"));
 
@@ -138,7 +132,7 @@ function render_ner_annotations(result) {
   // queryContainer.appendChild(query_row);
   // call annotator on query
   var displacy = new displaCyENT({container: queryContainer.querySelector('div:last-child')});
-  displacy.render(result.query_tags.text, result.query_tags.ents, 'all_matches');
+  displacy.render(result.query_tags.text, result.query_tags.ents, 'query');
 
   // Result snippet annotation
   var snippetContainer = document.getElementById('snippetDisplacy');
@@ -161,7 +155,7 @@ function render_ner_annotations(result) {
 
     resultTbody.appendChild(result_row);
     var displacy = new displaCyENT({container: resultTbody.querySelector('.result:last-child').querySelector('td:last-child')});
-    displacy.render(item.text, item.ents, radio_option, item.ent_similarity);
+    displacy.render(item.text, item.ents, radio_option);
   });
   resultTable.appendChild(resultTbody);
   snippetContainer.appendChild(resultTable);
@@ -197,17 +191,26 @@ $(document).ready(function () {
 
   // ************************* #ftq radio button events
   $('#entities').change(function () {
+    console.log(this.value);
+    console.log(ftresult);
     // execute only if there are results in the current display
     if ($.isEmptyObject(ftresult)) {
       return;
     }
+
     $('#snippetDisplacy').children('table').remove();
     // console.log('val: ', this.value);
     var containerEl = document.getElementById('snippetDisplacy');
     var resultTable = document.createElement("table");
     resultTable.className = 'table table-striped';
     var resultTbody = document.createElement("tbody");
-   
+    var radio_option;
+    if (this.value == 'All entities'){
+      radio_option = 'all_matches';
+    }
+    else {
+      radio_option = 'matched_entities';
+    }
     ftresult.results_tags.forEach(function(item, index) {
       var rownum = index + 1;
       var result_row = document.createElement("tr");
@@ -218,12 +221,7 @@ $(document).ready(function () {
 
       resultTbody.appendChild(result_row);
       var displacy = new displaCyENT({container: resultTbody.querySelector('.result:last-child').querySelector('td:last-child')});
-      if (this.value == 'All entities'){
-        displacy.render(item.text, item.ents, 'all_matches', item.ent_similarity);
-      }
-      else {
-        displacy.render(item.text, item.ents, 'matched_entities', item.ent_similarity);
-      }
+      displacy.render(item.text, item.ents, radio_option);
     });
     resultTable.appendChild(resultTbody);
     containerEl.appendChild(resultTable);    

@@ -30,9 +30,9 @@ class MYSpacyDoc():
 
 		# matches = self.matcher(doc)
 		# print('matches: ', matches)
-		flag = None
+		ent_match_in_doc = False
 		for ent in doc.ents:
-			
+			flag = None
 			for q_ent in self.query_tags.ents:
 				sim = q_ent.similarity(ent)
 				if sim > 0.5 and ent.label_ == q_ent.label_:
@@ -40,13 +40,14 @@ class MYSpacyDoc():
 						continue
 					for idx in range(ent.start, ent.end):
 						doc[idx]._.set('is_ent_match', sim)
+						ent_match_in_doc = True
 					flag = sim
 			# if any([ent.start >= start and ent.end <= end  for _, start, end in matches]):
 			# 	for idx in range(ent.start, ent.end):
 			# 		doc[idx]._.set("is_ent_match", True)
 			# 		flag = True
 			# 	# ent._.set("has_ent_match", True)
-		if flag is not None:
+		if ent_match_in_doc:
 			assert doc._.has_ent_match
 		else:
 			assert not doc._.has_ent_match

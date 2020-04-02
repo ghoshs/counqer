@@ -41,13 +41,27 @@ def get_median_results(cardinal_stats, val, rowbuffer):
 		rowbuffer[val+'_amod_freq'] = '{' + ','.join([str(amod_freq_dict[amod])+': '+amod for amod in amod_freq_dict]) + '}'
 	return rowbuffer
 
+def get_entities(result_tags, val, rowbuffer):
+	entities = {}
+	for item in result_tags:
+		for ent in item['ents']:
+			if 'np_sim' not in ent:
+				continue
+			entity = item['text'][ent['start']:ent['end']]
+			if entity in entities:
+				entities[entity]['freq'] += 1
+			else:	
+				entities[entity] = {'np_sim': ent['np_sim'], 'freq': 1}
+	rowbuffer[val+'_entities'] = '{' + ','.join([entity + ': {'+ str(entities[entity]['freq']) +','+ '{:.2f}'.format(entities[entity]['np_sim']) +'}' for entity in entities]) + '}'
+	return rowbuffer
+
 def analyser(queryfile='query_templates_ftq.txt', instancefile='instances_ftq.txt', outfile='query_analysis.csv'):
 	queries = cfq.create_ftq_queries(queryfile, instancefile)
 
 	header = ['Query', 'answer_gold', 'Google', 'Bing', 
-				'5_hnoun', '5_hnoun_list', '5_hnoun_freq', '5_amod_freq',
-				'10_hnoun', '10_hnoun_list', '10_hnoun_freq', '10_amod_freq',
-				'50_hnoun', '50_hnoun_list', '50_hnoun_freq', '50_amod_freq']
+				'5_hnoun', '5_hnoun_list', '5_hnoun_freq', '5_amod_freq', '5_entities',
+				'10_hnoun', '10_hnoun_list', '10_hnoun_freq', '10_amod_freq', '10_entities',
+				'50_hnoun', '50_hnoun_list', '50_hnoun_freq', '50_amod_freq', '50_entities']
 	create_outfile(outfile, header)
 
 	## server edits ##
@@ -61,6 +75,7 @@ def analyser(queryfile='query_templates_ftq.txt', instancefile='instances_ftq.tx
 			response = requests.get(url, params=params)
 			if response.raise_for_status() is None:
 				rowbuffer = get_median_results(response.json()['cardinal_stats'], str(val), rowbuffer)
+				rowbuffer = get_entities(response.json()['results_tags'], str(val), rowbuffer)
 			else:
 				print(q, val, response.raise_for_status())
 		with open(outfile, 'a') as csvfile:

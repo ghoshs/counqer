@@ -26,7 +26,7 @@ def free_text_query():
 	snippets = request.args.get('snippets')
 	print("Query:: ", query)
 	response = text_tags(query, snippets) if len(query) > 0 else {}
-	pprint.pprint(response, width=160)
+	# pprint.pprint(response, width=160)
 	return jsonify(response)
 
 @app.route('/')

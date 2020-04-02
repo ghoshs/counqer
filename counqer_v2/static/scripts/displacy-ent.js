@@ -45,11 +45,11 @@ class displaCyENT {
         xhr.send(JSON.stringify({ text, model }));
     }
 
-    render(text, spans, type, ent_similarity=[], ents=['person', 'norp', 'fac', 'org', 'gpe', 'loc', 'product', 'event', 'work_of_art', 'law', 'language', 'cardinal']) {
+    render(text, spans, type, ents=['person', 'norp', 'fac', 'org', 'gpe', 'loc', 'product', 'event', 'work_of_art', 'law', 'language', 'cardinal']) {
         this.container.innerHTML = '';
         let offset = 0;
 
-        spans.forEach(({ label, start, end }, idx) => {
+        spans.forEach(({ label, start, end, ent_sim}, idx) => {
             const entity = text.slice(start, end);
             const fragments = text.slice(offset, start).split('\n');
 
@@ -58,10 +58,13 @@ class displaCyENT {
                 if(fragments.length > 1 && i != fragments.length - 1) this.container.appendChild(document.createElement('br'));
             });
 
-            if (type === 'all_matches') {
+            if (type === 'all_matches' || type === 'query') {
                 if(ents.includes(label.toLowerCase())) {
                     const mark = document.createElement('mark');
                     mark.setAttribute('data-entity', label.toLowerCase());
+                    if(type === 'all_matches'){
+                        mark.setAttribute('title', ent_sim.toString());
+                    }   
                     mark.appendChild(document.createTextNode(entity));
                     this.container.appendChild(mark);
                 }
@@ -71,10 +74,10 @@ class displaCyENT {
                 }
             }
             else {
-                if((ents.includes(label.toLowerCase()) && ent_similarity[idx] > 0) || (label.toLowerCase() === 'cardinal')) {
+                if((ents.includes(label.toLowerCase()) && ent_sim > 0) || (label.toLowerCase() === 'cardinal')) {
                     const mark = document.createElement('mark');
                     mark.setAttribute('data-entity', label.toLowerCase());
-                    mark.setAttribute('title', ent_similarity[idx].toString());
+                    mark.setAttribute('title', ent_sim.toString());
                     mark.appendChild(document.createTextNode(entity));
                     this.container.appendChild(mark);
                 }

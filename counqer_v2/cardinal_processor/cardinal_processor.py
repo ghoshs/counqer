@@ -90,7 +90,7 @@ def get_word_to_num(text_cardinals):
 """
 function to return integers and their corresponding noun phrases for matched predicates
 """
-def get_nummodifiers(doc, query_nounphrase=None):
+def get_nummodifiers(doc, query=None):
 	cardinal_list = []
 	text_nounphrase = []
 	# get list of cardinal texts
@@ -99,10 +99,11 @@ def get_nummodifiers(doc, query_nounphrase=None):
 	for chunk in doc.noun_chunks:
 		# check for cardinals
 		if any(a['text'] in chunk.text for a in text_cardinals):
-			if query_nounphrase is not None:
+			if query is not None:
 				# keep noun phrase with matching phraseword
 				if len(chunk.root.text) > 0:
-					sim = max([x.similarity(chunk.root) for x in query_nounphrase])
+					sim = max([x.root.similarity(chunk.root) for x in query.noun_chunks])
+					# print(chunk.root, [x.root.text for x in query.noun_chunks])
 				else:
 					sim = 0
 				if sim > 0.5:
