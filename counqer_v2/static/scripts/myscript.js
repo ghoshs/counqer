@@ -227,11 +227,21 @@ $(document).ready(function () {
     containerEl.appendChild(resultTable);    
   });
 
-  // ************************* #ftq query event ******************************//
+  // ************************* #ftq query enter event *******************************//
+  $("#ftquery").keypress(function (event){
+    var keycode = (event.keyCode ? event.keyCode : event.which);
+    if (keycode === 13) {
+     //event.preventDefault();
+     document.getElementById("ftsearch").click();
+    }
+  });
+  // ************************* #ftq query search event ******************************//
   $("#ftsearch").click(function () {
     ft_form_refresh();
     console.log($("#ftquery").val());
     var query = $("#ftquery").val();
+    $("#ftquery").prop('disabled', true);
+    $("#ftsearch").prop('disabled', true);
     // displacy.parse(query);
     $.ajax({
       type: 'GET',
@@ -243,6 +253,8 @@ $(document).ready(function () {
         console.log(result);
         ftresult = result;
         render_results(ftresult);
+        $("#ftquery").prop('disabled', false);
+        $("#ftsearch").prop('disabled', false);
       },
       error: function() {
         console.log("no results returned!");
@@ -251,6 +263,8 @@ $(document).ready(function () {
                   "<button type='button' class='close' data-dismiss='alert' aria-label='Close'>" + 
                   "<span aria-hidden='true'>&times;</span> </button></div>";
         displayinfo(msg);
+        $("#ftquery").prop('disabled', false);
+        $("#ftsearch").prop('disabled', false);
       }
     });
   });
