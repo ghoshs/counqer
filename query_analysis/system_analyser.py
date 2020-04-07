@@ -8,8 +8,8 @@ from collections import defaultdict
 # ## server edits - 2 ##
 
 # ## server edits ##
-# http_proxy = 'http://dmz-gw.mpi-klsb.mpg.de:3128'
-# https_proxy = 'https://dmz-gw.mpi-klsb.mpg.de:3128'
+http_proxy = 'http://dmz-gw.mpi-klsb.mpg.de:3128'
+https_proxy = 'https://dmz-gw.mpi-klsb.mpg.de:3128'
 
 def create_outfile(outfile, header):
 	try:
@@ -51,23 +51,23 @@ def get_entities(result_tags, val, rowbuffer):
 			if entity in entities:
 				entities[entity]['freq'] += 1
 			else:	
-				entities[entity] = {'np_sim': ent['np_sim'], 'freq': 1}
-	rowbuffer[val+'_entities'] = '{' + ','.join([entity + ': {'+ str(entities[entity]['freq']) +','+ '{:.2f}'.format(entities[entity]['np_sim']) +'}' for entity in entities]) + '}'
+				entities[entity] = {'np_sim': ent['np_sim'], 'freq': 1, 'label': ent['label']}
+	rowbuffer[val+'_entities'] = '{' + ','.join([entity + ': {' + entities[entity]['label'] + ',' + str(entities[entity]['freq']) + ',' + 
+								 '{:.2f}'.format(entities[entity]['np_sim']) +'}' for entity in entities]) + '}'
 	return rowbuffer
 
 def analyser(queryfile='query_templates_ftq.txt', instancefile='instances_ftq.txt', outfile='query_analysis.csv'):
 	queries = cfq.create_ftq_queries(queryfile, instancefile)
 
 	header = ['Query', 'answer_gold', 'Google', 'Bing', 
-				'5_hnoun', '5_hnoun_list', '5_hnoun_freq', '5_amod_freq', '5_entities',
 				'10_hnoun', '10_hnoun_list', '10_hnoun_freq', '10_amod_freq', '10_entities',
 				'50_hnoun', '50_hnoun_list', '50_hnoun_freq', '50_amod_freq', '50_entities']
 	create_outfile(outfile, header)
 
 	## server edits ##
-	# url = 'https://counqer.mpi-inf.mpg.de/ftq/ftresults'
-	url = 'http://localhost:5000/ftresults'
-	snippet_vals = [5,10,50] 
+	url = 'https://counqer.mpi-inf.mpg.de/ftq/ftresults'
+	# url = 'http://localhost:5000/ftresults'
+	snippet_vals = [10,50] 
 	for q in tqdm(queries):
 		rowbuffer = {'Query': q}
 		for val in snippet_vals:
