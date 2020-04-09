@@ -8,8 +8,8 @@ from collections import defaultdict
 # ## server edits - 2 ##
 
 # ## server edits ##
-http_proxy = 'http://dmz-gw.mpi-klsb.mpg.de:3128'
-https_proxy = 'https://dmz-gw.mpi-klsb.mpg.de:3128'
+# http_proxy = 'http://dmz-gw.mpi-klsb.mpg.de:3128'
+# https_proxy = 'https://dmz-gw.mpi-klsb.mpg.de:3128'
 
 def create_outfile(outfile, header):
 	try:
@@ -65,8 +65,8 @@ def analyser(queryfile='query_templates_ftq.txt', instancefile='instances_ftq.tx
 	create_outfile(outfile, header)
 
 	## server edits ##
-	url = 'https://counqer.mpi-inf.mpg.de/ftq/ftresults'
-	# url = 'http://localhost:5000/ftresults'
+	# url = 'https://counqer.mpi-inf.mpg.de/ftq/ftresults'
+	url = 'http://localhost:5000/ftresults'
 	snippet_vals = [10,50] 
 	for q in tqdm(queries):
 		rowbuffer = {'Query': q}

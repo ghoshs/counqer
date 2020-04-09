@@ -1,5 +1,5 @@
 Query templates
-4
+1
 How many <NP> does <NNP> have?
 <NP> <IN> <NNP>
 <NNP> <NP>
