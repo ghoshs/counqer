@@ -2,6 +2,7 @@ import math
 import pandas as pd
 import pprint
 import cardinal_processor.myw2n as myw2n
+from nltk.corpus import wordnet as wn
 
 """
 function to return a dataframe for caculating median scores
@@ -88,11 +89,29 @@ def get_word_to_num(text_cardinals):
 	return integers
 
 """
+function to obtain the maximum path similarity between the synsets of snippet head noun and the query head noun 
+"""
+def max_similarity(chunk, query):
+	anomaly=['number']
+	chunk_synsets = wn.synsets(chunk.root.text)
+	# noun chunks containing named-entities will return empty lists
+	# remove noun heads equal to "number"
+	query_synsets = [wn.synsets(x.root.text) for x in query.noun_chunks if x.root.text not in anomaly]
+	# flatten the list
+	query_synsets = [x for sublist in query_synsets for x in sublist]
+	print(chunk, chunk.root.text, [x.root.text for x in query.noun_chunks])
+	print([wn.path_similarity(d,q) for d in chunk_synsets for q in query_synsets])
+	similarity = [wn.path_similarity(d,q) for d in chunk_synsets for q in query_synsets if wn.path_similarity(d,q) is not None]
+	max_similarity = max(similarity) if len(similarity) > 0 else 0 
+	return max_similarity
+
+"""
 function to return integers and their corresponding noun phrases for matched predicates
 """
 def get_nummodifiers(doc, query=None):
 	cardinal_list = []
 	text_nounphrase = []
+	similarity_threshold = 0.9
 	# get list of cardinal texts
 	text_cardinals = [{'text': ent.text, 'id': idx} for idx, ent in enumerate(doc.ents) if ent.label_ == 'CARDINAL']
 	# filter noun phrases
@@ -102,11 +121,15 @@ def get_nummodifiers(doc, query=None):
 			if query is not None:
 				# keep noun phrase with matching phraseword
 				if len(chunk.root.text) > 0:
-					sim = max([x.root.similarity(chunk.root) for x in query.noun_chunks])
+					# match only with noun phrases, not entities
+					## call wordnet path similarity function
+					sim = max_similarity(chunk, query)
+					## SpaCy similarity function  
+					# sim = max([x.root.similarity(chunk.root) for x in query.noun_chunks if x not in query.ents])
 					# print(chunk.root, [x.root.text for x in query.noun_chunks])
 				else:
 					sim = 0
-				if sim > 0.5:
+				if sim >= similarity_threshold:
 					modifier = []
 					for token in chunk:
 						if token.dep_ == 'amod':
