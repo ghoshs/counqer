@@ -1,16 +1,16 @@
-Instances <NP>, <IN>, <NNP>
+Gold, <NP>, <IN>, <NNP>
 1
-employees, at, Diffbot
-employees, at, Allen Institute for AI
-faculty members, of, University of North Dakota
-faculty members, of, UCSD
-songs, by, Hollywood Undead
-characters, in, Lord of the Rings
-subway stations, in, New York
-subway stations, in, Berlin
-ice lines, in, Germany
-hospitals, in, tennessee
-titles, by, Roger Federer
-children, of, James Garfield
-languages, in, India
-employees, at, Microsoft
+34, employees, at, Diffbot
+124, employees, at, Allen Institute for AI
+1110, faculty members, of, University of North Dakota
+10625, faculty members, of, UCSD
+219, songs, by, Hollywood Undead
+832, characters, in, Lord of the Rings
+472, subway stations, in, New York
+173, subway stations, in, Berlin
+32, ice lines, in, Germany
+176, hospitals, in, tennessee
+111, titles, by, Roger Federer
+7, children, of, James Garfield
+121, languages, in, India
+144000, employees, at, Microsoft

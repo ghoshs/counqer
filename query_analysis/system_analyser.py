@@ -68,16 +68,16 @@ def analyser(queryfile='query_templates_ftq.txt', instancefile='instances_ftq.tx
 	# url = 'https://counqer.mpi-inf.mpg.de/ftq/ftresults'
 	url = 'http://localhost:5000/ftresults'
 	snippet_vals = [10,50] 
-	for q in tqdm(queries):
-		rowbuffer = {'Query': q}
+	for query, gold in tqdm(queries):
+		rowbuffer = {'Query': query, 'answer_gold': str(gold)}
 		for val in snippet_vals:
-			params = {'query': q, 'snippets': val}
+			params = {'query': query, 'snippets': val}
 			response = requests.get(url, params=params)
 			if response.raise_for_status() is None:
 				rowbuffer = get_median_results(response.json()['cardinal_stats'], str(val), rowbuffer)
 				rowbuffer = get_entities(response.json()['results_tags'], str(val), rowbuffer)
 			else:
-				print(q, val, response.raise_for_status())
+				print(query, val, response.raise_for_status())
 		with open(outfile, 'a') as csvfile:
 			writer = csv.DictWriter(csvfile, delimiter=',', quoting=csv.QUOTE_MINIMAL, fieldnames=header)
 			writer.writerow(rowbuffer)
