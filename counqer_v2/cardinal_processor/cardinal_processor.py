@@ -96,7 +96,7 @@ def max_similarity(chunk, query):
 	chunk_synsets = wn.synsets(chunk.root.text)
 	# noun chunks containing named-entities will return empty lists
 	# remove noun heads equal to "number"
-	query_synsets = [wn.synsets(x.root.text) for x in query.noun_chunks if x.root.text not in anomaly]
+	query_synsets = [wn.synsets(x.root.text) for x in query.noun_chunks if not (x in query.ents or x.root.text in anomaly)]
 	# flatten the list
 	query_synsets = [x for sublist in query_synsets for x in sublist]
 	print(chunk, chunk.root.text, [x.root.text for x in query.noun_chunks])
