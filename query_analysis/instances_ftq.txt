@@ -1,5 +1,5 @@
 Gold, <NP>, <IN>, <NNP>
-1
+15
 34, employees, at, Diffbot
 124, employees, at, Allen Institute for AI
 1110, faculty members, of, University of North Dakota
@@ -14,3 +14,21 @@ Gold, <NP>, <IN>, <NNP>
 7, children, of, James Garfield
 121, languages, in, India
 144000, employees, at, Microsoft
+22, books, by, J. K. Rowling
+698, translations, of, The Bible
+24, comic books, of, The Adventures of Tintin
+3, novels, by, Franz Kafka
+6, awards, by, Arundhati Roy
+2996, deaths, in, World Trade Center
+7, deaths, in, Space Shuttle Challenger
+3634, casualties, in, Rana Plaza disaster
+500000, exposed people, in, Bhopal gas tragedy 
+8000, annual grants, by, Fulbright Program 
+6, categories, of, Nobel Prize
+27, members, of, European Union
+193, countries, in, The United Nations
+29, states, in, India
+1250, songs composed, by, Irvin Berlin
+213, songs, by, The Beatles
+163, crew members, in, Forrest Gump
+2823, academic faculty, of, Saarland University 

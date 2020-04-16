@@ -91,4 +91,4 @@ if __name__ == '__main__':
 	# args = vars(parser.parse_args()) 
 	# print(args['queryfile'], args['instancefile'], args['outfile'])
 	# analyser(args['queryfile'], args['instancefile'], args['outfile'])
-	analyser()
+	analyser(outfile='query_analysis_4.csv')
