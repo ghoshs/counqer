@@ -5,10 +5,10 @@ def evaluate(analysisfile):
 	# metric = pd.DataFrame()
 	results = pd.read_csv(analysisfile)
 	numrows = len(results)
-	results['precision_50'] = results['answer_gold'] == results['50_hnoun']
-	results['precision_10'] = results['answer_gold'] == results['10_hnoun']
-	results['correctness_ratio_50'] = results.apply(lambda x: x['answer_gold']/x['50_hnoun'] if x['50_hnoun'] > x['answer_gold'] else x['50_hnoun']/x['answer_gold'], axis=1)
+	results['precision_10'] = results.apply(lambda x: 1 if x['answer_gold'] == x['10_hnoun'] else 0, axis=1) 
+	results['precision_50'] = results.apply(lambda x: 1 if x['answer_gold'] == x['50_hnoun'] else 0, axis=1)
 	results['correctness_ratio_10'] = results.apply(lambda x: x['answer_gold']/x['10_hnoun'] if x['10_hnoun'] > x['answer_gold'] else x['10_hnoun']/x['answer_gold'], axis=1)
+	results['correctness_ratio_50'] = results.apply(lambda x: x['answer_gold']/x['50_hnoun'] if x['50_hnoun'] > x['answer_gold'] else x['50_hnoun']/x['answer_gold'], axis=1)
 	results.to_csv('metric_'+analysisfile.split('/')[-1].split('_')[-1].split('.csv')[0]+'.csv', encoding='utf-8', index=False)
 	return
 
