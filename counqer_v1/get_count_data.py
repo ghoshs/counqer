@@ -201,7 +201,7 @@ def wd_sparql(query, pred_list):
 			return({'error': 'Exception in sparql query WD'})
 		print('L80: ', results)
 		query_vars = results["head"]["vars"]
-		if "results" in results:
+		if len(results['results']['bindings'][0]) > 0:
 			o1val = []
 			o2val = []
 			s1val = []
@@ -437,7 +437,7 @@ PREFIX dbp: <http://dbpedia.org/property/>
 			return({'error': 'Exception at sparql query DBP'})
 		print('L353: ', results)
 		query_vars = results["head"]["vars"]
-		if "results" in results:
+		if len(results['results']['bindings'][0]) > 0:
 			o1val = []
 			o2val = []
 			s1val = []
