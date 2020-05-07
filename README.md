@@ -1,4 +1,5 @@
 Welcome to the reboot of CounQER - a question answering system for COUNting Quantifiers and Entity-valued pRedicates.
+Demo available at [https://counqer.mpi-inf.mpg.de/spo](https://counqer.mpi-inf.mpg.de/spo)
 
 ### Installation
 1. Local machine
