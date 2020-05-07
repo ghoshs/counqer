@@ -1,6 +1,0 @@
-Query templates
-1
-How many <NP> does <NNP> have?
-<NP> <IN> <NNP>
-<NNP> <NP>
-Number of <NP> <IN> <NNP>
