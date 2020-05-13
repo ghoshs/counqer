@@ -1,5 +1,6 @@
 Welcome to the reboot of CounQER - a question answering system for COUNting Quantifiers and Entity-valued pRedicates.
 Demo available at [https://counqer.mpi-inf.mpg.de/spo](https://counqer.mpi-inf.mpg.de/spo)
+Details on demo is available at [https://arxiv.org/pdf/2005.03529.pdf](https://arxiv.org/pdf/2005.03529.pdf) and the methodology at [https://arxiv.org/pdf/2003.03155.pdf](https://arxiv.org/pdf/2003.03155.pdf) 
 
 ### Installation
 1. Local machine
@@ -22,3 +23,4 @@ The app runs on port 5000 which can be changed by editing the port number in the
 
 ### SPO query and top KB alignments
 Based on results from CounQER v1 on identifying set predicates from KB and aligning related set-predicates.
+
