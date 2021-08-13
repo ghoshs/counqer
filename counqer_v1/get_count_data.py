@@ -35,7 +35,7 @@ except ImportError:
 
 wd_labels = {}
 
-## server edits ##
+# ## server edits ##
 fname_score_wd = '/var/www/counqer_v1/static/data/alignments/wikidata.csv'
 fname_score_dbpr = '/var/www/counqer_v1/static/data/alignments/dbpedia_raw.csv'
 fname_score_dbpm = '/var/www/counqer_v1/static/data/alignments/dbpedia_mapped.csv'
@@ -134,7 +134,7 @@ def o1_and_o2_exist(response, response_inv):
 		# check if o1Label exists and at least one o2Label is non-empty 
 		no_o1Label = 'o1Label' not in response_inv[0]
 		idx = 0 if no_o1Label else 1
-		no_o2Label = not any([len(item['o2Label']) > 0 for item in response_inv[idx:]])
+		no_o2Label = not any(['o2Label' in item and len(item['o2Label']) > 0 for item in response_inv[idx:]])
 		# print('1. ',no_o1Label, no_o2Label)
 		if no_o1Label and no_o2Label:
 			return False
@@ -144,7 +144,7 @@ def o1_and_o2_exist(response, response_inv):
 		# check if o1Label exists and at east one o2Label in response
 		no_o1Label = 'o1Label' not in response[0]
 		idx = 0 if  no_o1Label else 1
-		no_o2Label = not any([len(item['o2Label']) > 0 for item in response[idx:]])
+		no_o2Label = not any(['o2Label' in item and len(item['o2Label']) > 0 for item in response[idx:]])
 		# print('2. ',no_o1Label, no_o2Label)
 		if no_o1Label and no_o2Label:
 			return False
@@ -152,9 +152,9 @@ def o1_and_o2_exist(response, response_inv):
 			return True
 	elif 'o1Label' not in response[0] and 'o1Label' not in response_inv[0]:
 		# no o2Label in response
-		no_o2Label_r = not any([len(item['o2Label']) > 0 for item in response[0:]]) 
+		no_o2Label_r = not any(['o2Label' in item and len(item['o2Label']) > 0 for item in response[0:]]) 
 		# no o2Label in response_inv
-		no_o2Label_inv = not any([len(item['o2Label']) > 0 for item in response_inv[0:]])
+		no_o2Label_inv = not any(['o2Label' in item and len(item['o2Label']) > 0 for item in response_inv[0:]])
 		# print('3. ',no_o2Label_r, no_o2Label_inv)
 		if no_o2Label_r and no_o2Label_inv:
 			return False
@@ -201,35 +201,34 @@ def wd_sparql(query, pred_list):
 			return({'error': 'Exception in sparql query WD'})
 		print('L80: ', results)
 		query_vars = results["head"]["vars"]
-		if len(results['results']['bindings'][0]) > 0:
-			o1val = []
-			o2val = []
-			s1val = []
-			s2val = []
-			queryurl = beautify_wd_query(sparql.query().response.geturl())
-			for value in results["results"]["bindings"]:
-				if 'o1Label' in value:
-					o1val.append(value['o1']['value'] + '/' + value['o1Label']['value'])
-				if 'o2Label' in value:
-					o2val.append(value['o2']['value'] + '/' + value['o2Label']['value'])
-				if 's1Label' in value:
-					s1val.append(value['s1']['value'] + '/' + value['s1Label']['value'])
-				if 's2Label' in value:
-					s2val.append(value['s2']['value'] + '/' + value['s2Label']['value'])
-			if len(o1val) > 0:	
-				response.append({'o1Label': o1val, 'q': queryurl})
-				# print('o1label: ', len(o1val), flag_query1)
-			elif len(s1val) > 0:
-				response.append({'s1Label': s1val, 'q': queryurl})
-
-			# include empty results also
-			# if len(o2val) > 0:
-			if len(pred_list[idx]) > 0:
-				if 'o2' in query_vars:
-					response.append({'o2Label': o2val, 'p2': wd_labels[pred_list[idx].split('_inv')[0]], 'q': queryurl})
-				elif 's2' in query_vars:
-					response.append({'s2Label': s2val, 'p2': wd_labels[pred_list[idx].split('_inv')[0]], 'q': queryurl})
-				
+		o1val = []
+		o2val = []
+		s1val = []
+		s2val = []
+		queryurl = beautify_wd_query(sparql.query().response.geturl())
+		# if len(results['results']['bindings'][0]) > 0:
+		for value in results["results"]["bindings"]:
+			if 'o1Label' in value:
+				o1val.append(value['o1']['value'] + '/' + value['o1Label']['value'])
+			if 'o2Label' in value:
+				o2val.append(value['o2']['value'] + '/' + value['o2Label']['value'])
+			if 's1Label' in value:
+				s1val.append(value['s1']['value'] + '/' + value['s1Label']['value'])
+			if 's2Label' in value:
+				s2val.append(value['s2']['value'] + '/' + value['s2Label']['value'])
+		if len(o1val) > 0:	
+			response.append({'o1Label': o1val, 'q': queryurl})
+			# print('o1label: ', len(o1val), flag_query1)
+		elif len(s1val) > 0:
+			response.append({'s1Label': s1val, 'q': queryurl})
+		# include empty results also
+		# if len(o2val) > 0:
+		if len(pred_list[idx]) > 0:
+			if 'o2' in query_vars:
+				response.append({'o2Label': o2val, 'p2': wd_labels[pred_list[idx].split('_inv')[0]], 'q': queryurl})
+			elif 's2' in query_vars:
+				response.append({'s2Label': s2val, 'p2': wd_labels[pred_list[idx].split('_inv')[0]], 'q': queryurl})
+			
 	if len(response) > 0:
 		return(response)
 	else:
@@ -437,42 +436,33 @@ PREFIX dbp: <http://dbpedia.org/property/>
 			return({'error': 'Exception at sparql query DBP'})
 		print('L353: ', results)
 		query_vars = results["head"]["vars"]
-		if len(results['results']['bindings'][0]) > 0:
-			o1val = []
-			o2val = []
-			s1val = []
-			s2val = []
-			queryurl = beautify_dbp_query(sparql.query().response.geturl())
-			print('url: ', queryurl)
-
-			for value in results["results"]["bindings"]:
-				if 'o1' in value:
-					o1val.append(value['o1']['value'])
-				if 'o2' in value:
-					o2val.append(value['o2']['value'])
-				if 's1' in value:
-					s1val.append(value['s1']['value'])
-				if 's2' in value:
-					s2val.append(value['s2']['value'])
-			if len(o1val) > 0:
-				response.append({'o1Label': o1val, 'q': queryurl})
-			elif len(s1val) > 0:
-				response.append({'s1Label': s1val, 'q': queryurl})
-			# # Include empty responses also for related predicate (pred_list[idx] is non-empty) queries
-			if len(pred_list[idx]) > 0:
-				p_label = get_dbp_plabel(pred_list[idx])
-								
-				if 'o2' in query_vars:
-					response.append({'o2Label': o2val, 'p2': p_label, 'q': queryurl})
-				elif 's2' in query_vars:
-					response.append({'s2Label': s2val, 'p2': p_label, 'q': queryurl})
-			# if main query has empty results then related queries not required
-			# if ('s1' in query_vars or 'o1' in query_vars) and len(o1val) == 0 and len(s1val) == 0:
-			# 	# remove nay related query result
-			# 	if len(response) > 0:
-			# 		response = []
-			# 	break
-
+		o1val = []
+		o2val = []
+		s1val = []
+		s2val = []
+		queryurl = beautify_dbp_query(sparql.query().response.geturl())
+		print('url: ', queryurl)
+		# if len(results['results']['bindings'][0]) > 0:
+		for value in results["results"]["bindings"]:
+			if 'o1' in value:
+				o1val.append(value['o1']['value'])
+			if 'o2' in value:
+				o2val.append(value['o2']['value'])
+			if 's1' in value:
+				s1val.append(value['s1']['value'])
+			if 's2' in value:
+				s2val.append(value['s2']['value'])
+		if len(o1val) > 0:
+			response.append({'o1Label': o1val, 'q': queryurl})
+		elif len(s1val) > 0:
+			response.append({'s1Label': s1val, 'q': queryurl})
+		# # Include empty responses also for related predicate (pred_list[idx] is non-empty) queries
+		if len(pred_list[idx]) > 0:
+			p_label = get_dbp_plabel(pred_list[idx])			
+			if 'o2' in query_vars:
+				response.append({'o2Label': o2val, 'p2': p_label, 'q': queryurl})
+			elif 's2' in query_vars:
+				response.append({'s2Label': s2val, 'p2': p_label, 'q': queryurl})
 	if len(response) > 0:
 		return(response)
 	else:

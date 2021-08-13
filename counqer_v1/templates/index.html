@@ -37,6 +37,7 @@
 		<li><a class="active" href="#spo">SPO query</a></li>
 		<!-- <li><a href="#ftq">Free text query</a></li> -->
 		<li><a href="#topalign">Alignments</a></li>
+		<li><a href="#about">About</a></li>
 	</ul>
 </nav>
 <!-- <div class="jumbotron text-center" id="header">
@@ -331,6 +332,30 @@
 	<div class="row no-gutter">
 		<sup>We denote alignments missed by CounQER with a <strong>*</strong> by the scores.</sup>
 	</div>
+</div>
+
+<div class="container body" id="about" style="display:none;">
+	<h2>About</h2>
+	<hr>
+	<p>Predicate constraints of general-purpose knowledge bases (KBs) like Wikidata, DBpedia and Freebase are often limited to subproperty, domain and range constraints. In this demo we showcase CounQER, a system that illustrates the alignment of counting predicates, like <code>staffSize</code>, and enumerating predicates, like <code>workInstitution<sup>-1</sup></code>. Here, users can inspect these alignments through a simple SPO question answering interface.
+	<a href="https://preprints.2020.eswc-conferences.org/posters_demos/paper_274.pdf"><img src="{{ url_for('static', filename='images/pdf-icon.png') }}" width="20px"></a> |
+	<a href="https://preprints.2020.eswc-conferences.org/posters_demos/274-Ghosh.pdf">poster</a>
+	</p>
+	
+	<p>CounQER is built as a two step approach where we 
+		<ol>
+			<li><i>identify set-valued predicates from a given KB predicates via statistical and embedding-based features</i>, and</li>
+			<li><i>link counting predicates and enumerating predicates by a combination of co-occurrence, correlation and textual relatedness metrics.</i></li>
+		</ol>
+		 We analyze the prevalence of count information in four prominent knowledge bases, 
+		 <ol>
+		 	<li>Wikidata</li>
+		 	<li>DBpedia raw extractions</li>
+		 	<li>DBpedia mapped extractions</li>
+		 	<li>Freebase</li>
+		 </ol>
+		 and show that our linking method achieves up to <em>0.55 F1</em> score in set predicate identification versus 0.40 F1 score of a random selection, and normalized discounted gains of up to <em>0.84</em> at position 1 and <em>0.75</em> at position 3 in relevant predicate alignments. You can refer to our paper for complete details on the CounQER methodology.
+		 <a href="https://arxiv.org/pdf/2003.03155.pdf"><img src="{{ url_for('static', filename='images/pdf-icon.png') }}" width="20px"></a></p>
 </div>
 
 <div id="footer">

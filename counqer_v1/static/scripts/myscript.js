@@ -12,10 +12,10 @@ var predrequest = new XMLHttpRequest();
 
 var wd_labels = {};
 
-// var flaskurl = 'http://localhost:5000/';
+var flaskurl = 'http://localhost:5000/';
 
 /** server edits**/
-var flaskurl = 'https://counqer.mpi-inf.mpg.de/spo/'; 
+// var flaskurl = 'https://counqer.mpi-inf.mpg.de/spo/'; 
 
 // display info messages on query click
 var waitmsg = "<div class='row alert alert-info alert-dismissible' style='margin-bottom: 0px'><strong>!!</strong> Hold on to your seats, CounQER is fetching the results!<button type='button' class='close' data-dismiss='alert' aria-label='Close'> <span aria-hidden='true'>&times;</span> </button></div>";
@@ -1217,10 +1217,17 @@ $(document).ready(function () {
     if ($(this).attr('href') == '#topalign'){
       $('#topalign').show();
       $('#spo').hide();
+      $('#about').hide();
+    }
+    else if ($(this).attr('href') == '#about'){
+      $('#about').show();
+      $('#spo').hide();
+      $('#topalign').hide();
     }
     else {
-      $('#topalign').hide();
       $('#spo').show();
+      $('#topalign').hide();
+      $('#about').hide();
     }
   });
 
@@ -1228,8 +1235,9 @@ $(document).ready(function () {
   $('#footerReturn').click(function () {
     $('#navbar .active').removeClass('active');
     $('#navbar > li > a').first().addClass('active');
-    $('#topalign').hide();
     $('#spo').show();
+    $('#topalign').hide();
+    $('#about').hide();
   });
 
   // ******************************* alignment tab click *************************** //
